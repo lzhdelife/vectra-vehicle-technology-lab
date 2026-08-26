@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VECTRA · 系统级诊断方法</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="site.css" />
+    <style>
+      .case-tabs {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        border-bottom: 1px solid var(--line);
+      }
+      .case-tabs button {
+        border: 0;
+        border-right: 1px solid var(--line);
+        background: #0d1318;
+        color: #909ca4;
+        padding: 17px;
+        text-align: left;
+        cursor: pointer;
+      }
+      .case-tabs button:last-child {
+        border-right: 0;
+      }
+      .case-tabs button.active {
+        background: #1a3033;
+        color: #e2ffff;
+      }
+      .case-tabs b {
+        display: block;
+        font-size: 14px;
+      }
+      .case-tabs small {
+        display: block;
+        color: #65727b;
+        font-size: 10px;
+        margin-top: 5px;
+      }
+      .tree {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+      }
+      .tree-stage {
+        height: 520px;
+        background: #090e12;
+        border-right: 1px solid var(--line);
+        position: relative;
+      }
+      .tree-stage canvas {
+        width: 100%;
+        height: 100%;
+      }
+      .investigation {
+        padding: 22px;
+      }
+      .investigation .step-code {
+        color: var(--cyan);
+        font: 11px "DM Mono";
+      }
+      .investigation h2 {
+        font-size: 22px;
+        margin: 10px 0 7px;
+      }
+      .investigation p {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.55;
+        min-height: 62px;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin: 16px 0;
+      }
+      .controls button {
+        border: 1px solid var(--line);
+        background: #0d1318;
+        color: #a7b1b8;
+        padding: 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .controls button.active {
+        border-color: #47777a;
+        color: #d7ffff;
+      }
+      .evidence {
+        display: grid;
+        gap: 9px;
+        border-top: 1px solid var(--line);
+        padding-top: 15px;
+      }
+      .evidence div {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 12px;
+      }
+      .evidence span {
+        color: var(--muted);
+      }
+      .evidence b {
+        font: 500 12px "DM Mono";
+        text-align: right;
+      }
+      .conclusion {
+        margin-top: 15px;
+        border-left: 3px solid var(--green);
+        background: #101b17;
+        padding: 13px;
+      }
+      .conclusion small {
+        display: block;
+        color: #6e8177;
+        font-size: 10px;
+      }
+      .conclusion strong {
+        display: block;
+        font-size: 14px;
+        margin-top: 6px;
+      }
+      .method {
+        margin-top: 12px;
+      }
+      .method-body {
+        padding: 22px;
+      }
+      .method-flow {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 7px;
+      }
+      .method-step {
+        min-height: 104px;
+        border: 1px solid #2e3a42;
+        background: #0d1318;
+        padding: 13px;
+      }
+      .method-step b {
+        color: var(--cyan);
+        font: 11px "DM Mono";
+      }
+      .method-step strong {
+        display: block;
+        font-size: 13px;
+        margin: 11px 0 5px;
+      }
+      .method-step span {
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.4;
+      }
+      .dtc-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+        margin-top: 15px;
+      }
+      .dtc-state {
+        border: 1px solid var(--line);
+        padding: 15px;
+      }
+      .dtc-state i {
+        display: block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+      }
+      .dtc-state.current i {
+        background: var(--red);
+      }
+      .dtc-state.history i {
+        background: var(--yellow);
+      }
+      .dtc-state.intermittent i {
+        background: var(--cyan);
+      }
+      .dtc-state strong {
+        font-size: 13px;
+      }
+      .dtc-state p {
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.45;
+        margin: 7px 0 0;
+      }
+      @media (max-width: 980px) {
+        .tree {
+          grid-template-columns: 1fr;
+        }
+        .tree-stage {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .method-flow {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      @media (max-width: 620px) {
+        .case-tabs {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .tree-stage {
+          height: 610px;
+        }
+        .method-flow {
+          grid-template-columns: 1fr 1fr;
+        }
+        .dtc-strip {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="readable.css" />
+  </head>
+  <body class="diagnosis-page">
+    <div class="shell">
+      <aside class="side">
+        <div class="brand">
+          <div class="brand-mark"><img src="assets/tesla-logo-mark.png" alt="Tesla" /></div>
+          <div><strong>VECTRA</strong><small>VEHICLE SUPPORT LAB</small></div>
+        </div>
+        <div class="side-label">LEARNING MAP</div>
+        <nav class="nav">
+          <a href="index.html"><b>00</b><span>学习总览</span></a
+          ><a href="network.html"><b>01</b><span>车载网络</span></a
+          ><a href="circuits.html"><b>02</b><span>低压电气</span></a
+          ><a href="systems.html"><b>03</b><span>机电系统</span></a
+          ><a href="software.html"><b>04</b><span>软件与刷写</span></a
+          ><a class="active" href="diagnosis.html"
+            ><b>05</b><span>诊断方法</span></a
+          >
+        </nav>
+        <div class="side-foot"><i></i>EVIDENCE BEFORE PARTS</div>
+      </aside>
+      <main class="main">
+        <header class="page-head">
+          <div>
+            <div class="eyebrow">05 / SYSTEM-LEVEL DIAGNOSIS</div>
+            <h1>系统级故障诊断</h1>
+            <p>
+              从现象出发，用 DTC、数据流和测量结果逐层排除。目标不是找到“报码的
+              ECU”，而是找到能够解释全部现象的共同根因。
+            </p>
+          </div>
+          <a class="back" href="index.html">← 返回总览</a>
+        </header>
+        <section class="panel">
+          <div class="case-tabs" id="caseTabs"></div>
+          <div class="tree">
+            <div class="tree-stage"><canvas id="treeCanvas"></canvas></div>
+            <aside class="investigation">
+              <span class="step-code" id="stepCode">STEP 00</span>
+              <h2 id="stepTitle">确认故障现象</h2>
+              <p id="stepDesc">
+                车辆无法进入
+                READY，多个控制器同时出现通信故障。先寻找共同依赖，而不是逐个更换
+                ECU。
+              </p>
+              <div class="controls">
+                <button id="diagReset">重置</button
+                ><button id="diagStep">单步</button
+                ><button id="diagPlay">播放</button>
+              </div>
+              <div class="evidence">
+                <div><span>DTC</span><b id="evDtc">U0100 / U0101</b></div>
+                <div><span>实时数据</span><b id="evData">VBAT 9.1 V</b></div>
+                <div><span>测量结果</span><b id="evMeasure">负载时压降</b></div>
+                <div><span>故障层级</span><b id="evLayer">待判断</b></div>
+              </div>
+              <div class="conclusion">
+                <small>WORKING CONCLUSION</small
+                ><strong id="conclusion">证据不足，继续收集</strong>
+              </div>
+            </aside>
+          </div>
+        </section>
+        <section class="panel method">
+          <div class="panel-head">
+            <h2>统一诊断路径</h2>
+            <small>SYMPTOM → EVIDENCE → ROOT CAUSE</small>
+          </div>
+          <div class="method-body">
+            <div class="method-flow">
+              <div class="method-step">
+                <b>01</b><strong>确认现象</strong
+                ><span>何时发生、能否复现、影响哪些功能。</span>
+              </div>
+              <div class="method-step">
+                <b>02</b><strong>读取 DTC</strong
+                ><span>当前、历史、偶发及关联模块。</span>
+              </div>
+              <div class="method-step">
+                <b>03</b><strong>查看数据</strong
+                ><span>趋势、合理性、命令和反馈。</span>
+              </div>
+              <div class="method-step">
+                <b>04</b><strong>基础检查</strong
+                ><span>供电、搭铁、保险丝、唤醒。</span>
+              </div>
+              <div class="method-step">
+                <b>05</b><strong>通信检查</strong
+                ><span>线束、波形、报文周期、节点状态。</span>
+              </div>
+              <div class="method-step">
+                <b>06</b><strong>区分层级</strong
+                ><span>硬件、软件、配置或环境条件。</span>
+              </div>
+              <div class="method-step">
+                <b>07</b><strong>修复复测</strong
+                ><span>清码、复现工况、确认不再发生。</span>
+              </div>
+            </div>
+            <div class="dtc-strip">
+              <div class="dtc-state current">
+                <i></i><strong>当前故障</strong>
+                <p>测试条件满足且故障仍存在，优先处理。</p>
+              </div>
+              <div class="dtc-state history">
+                <i></i><strong>历史故障</strong>
+                <p>曾经发生但当前未复现，需要结合发生时间。</p>
+              </div>
+              <div class="dtc-state intermittent">
+                <i></i><strong>偶发故障</strong>
+                <p>重点检查虚接、振动、干扰和唤醒时序。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const cases = [
+        {
+          name: "无法进入 READY",
+          sub: "多个 ECU 通信 DTC",
+          symptom: "NO READY",
+          path: "power",
+          dtc: "U0100 / U0101",
+          data: "VBAT 9.1 V",
+          measure: "负载时压降",
+          root: "12V 电池内阻过大",
+          steps: [
+            [
+              "确认故障现象",
+              "车辆无法进入 READY，多个控制器同时出现通信故障。先寻找共同依赖，而不是逐个更换 ECU。",
+            ],
+            [
+              "读取全车 DTC",
+              "VCU、BMS 和 MCU 同时报通信丢失，指向共同供电或网络问题。",
+            ],
+            [
+              "查看低压数据",
+              "点火瞬间 VBAT 从 12.2 V 跌至 9.1 V，多个 ECU 发生复位。",
+            ],
+            ["带载测量", "电池端电压同步跌落，搭铁压降正常，排除局部线束。"],
+            [
+              "确认共同根因",
+              "12V 电池内阻过大导致 ECU 复位，通信 DTC 是结果而非根因。",
+            ],
+          ],
+        },
+        {
+          name: "HVIL 断路",
+          sub: "高压不上电",
+          symptom: "HVIL OPEN",
+          path: "power",
+          dtc: "P0AA6 / P0A0A",
+          data: "互锁状态 OPEN",
+          measure: "回路不导通",
+          root: "高压接插件未锁止",
+          steps: [
+            ["确认故障现象", "车辆无法进入 READY，高压接触器没有闭合。"],
+            ["读取高压状态", "BMS 报告 HVIL 为 OPEN，禁止高压上电。"],
+            ["检查安全条件", "先断开低压并确认无高压，再检查橙色线束。"],
+            ["检查互锁回路", "逐段检查维修开关、PDU 和电机控制器接插件。"],
+            ["确认共同根因", "发现接插件未锁止，复位后 HVIL 闭合并恢复上电。"],
+          ],
+        },
+        {
+          name: "CAN 支路开路",
+          sub: "单节点离线",
+          symptom: "MCU TIMEOUT",
+          path: "network",
+          dtc: "U0101",
+          data: "其他 ECU 在线",
+          measure: "CAN 支路无波形",
+          root: "MCU 支路线束开路",
+          steps: [
+            ["确认故障现象", "车辆动力受限，VCU 只报告 MCU 状态报文超时。"],
+            ["检查节点范围", "BMS、BCM 和网关在线，总线主干仍可通信。"],
+            ["验证 MCU 供电", "MCU 低压供电与搭铁正常，节点具备启动条件。"],
+            ["检查通信支路", "MCU 接插件处没有 CAN 波形，主干波形正常。"],
+            ["确认共同根因", "MCU CAN 支路线束开路，修复后报文周期恢复。"],
+          ],
+        },
+        {
+          name: "终端电阻异常",
+          sub: "波形反射",
+          symptom: "CAN REFLECTION",
+          path: "network",
+          dtc: "U 类通信历史码",
+          data: "总线负载 42%",
+          measure: "终端阻抗 120Ω",
+          root: "一端 120Ω 终端缺失",
+          steps: [
+            ["确认故障现象", "多个 ECU 偶发通信错误，示波器上出现边沿振铃和反射。"],
+            ["检查总线范围", "确认故障影响整个网段，而不是某一个 ECU 的单独支路。"],
+            ["读取通信数据", "报文重发和错误帧增加，但节点供电与搭铁正常。"],
+            ["测量总线阻抗", "断电测量 CAN-H 与 CAN-L，实测 120Ω 而不是两只并联后的约 60Ω。"],
+            ["确认共同根因", "一端终端电阻缺失，恢复 120Ω 终端后波形和通信稳定。"],
+          ],
+        },
+        {
+          name: "充电速度过慢",
+          sub: "桩 / 设置 / 温度",
+          symptom: "CHARGE LIMITED",
+          path: "power",
+          dtc: "无当前 DTC",
+          data: "功率 18 kW",
+          measure: "电池 6°C",
+          root: "电池温度限制功率",
+          steps: [
+            ["确认故障现象", "车辆可以充电，但实际功率明显低于充电桩标称值。"],
+            ["确认充电桩能力", "核对桩端电压、电流和其他车辆的充电功率。"],
+            ["检查车辆设置", "确认没有设置低电流、预约充电或充电上限。"],
+            ["查看电池数据", "电池温度偏低，BMS 正在限制充电电流以保护电芯。"],
+            ["确认共同根因", "预热电池后功率恢复，故障来自温度边界而非充电机损坏。"],
+          ],
+        },
+        {
+          name: "热泵不制热",
+          sub: "热管理模式异常",
+          symptom: "NO CABIN HEAT",
+          path: "actuator",
+          dtc: "BMS / HVAC 状态",
+          data: "阀位与命令不一致",
+          measure: "回路温差异常",
+          root: "八通阀未切换到制热路径",
+          steps: [
+            ["确认故障现象", "低温环境下座舱不暖，电池加热请求也没有明显响应。"],
+            ["读取热管理状态", "确认压缩机、PTC、水泵和八通阀的命令与反馈。"],
+            ["检查传感器数据", "比较各回路进出口温度，排除温度传感器卡滞。"],
+            ["验证执行器动作", "执行阀门和水泵测试，观察流量和温差是否改变。"],
+            ["确认共同根因", "阀位反馈未跟随命令，重新标定或修复阀门后恢复制热。"],
+          ],
+        },
+        {
+          name: "冷却液泄漏",
+          sub: "热管理回路",
+          symptom: "COOLANT LOW",
+          path: "actuator",
+          dtc: "P0C2B",
+          data: "膨胀壶液位下降",
+          measure: "15 min 压降",
+          root: "热泵接头密封泄漏",
+          steps: [
+            ["确认故障现象", "地面出现冷却液痕迹，车辆提示冷却液液位或温度异常。"],
+            ["确定回路范围", "记录液体颜色和滴落位置，区分电池、电驱和热泵回路。"],
+            ["目视检查", "重点检查八通阀、歧管、水泵、散热器和软管接头。"],
+            ["压力测试", "对目标回路加压并观察压力变化，逐段定位泄漏点。"],
+            ["确认共同根因", "发现热泵接头密封泄漏，修复后补液并执行排气程序。"],
+          ],
+        },
+        {
+          name: "中控屏重启",
+          sub: "软件 / 低压供电",
+          symptom: "CENTER SCREEN RESET",
+          path: "software",
+          dtc: "日志待收集",
+          data: "版本 2026.20",
+          measure: "VBAT 稳定",
+          root: "软件版本缺陷",
+          steps: [
+            ["确认故障现象", "屏幕偶发卡顿或重启，车辆基础驾驶功能仍然可用。"],
+            ["记录复现条件", "记录发生时间、温度、网络状态和是否正在使用特定功能。"],
+            ["检查低压供电", "确认屏幕重启时 12V 电压没有同步跌落。"],
+            ["对照软件版本", "查询技术公告和已知问题，比较升级前后的日志。"],
+            ["确认共同根因", "低压稳定且新版本已修复该问题，完成 OTA 后复测。"],
+          ],
+        },
+        {
+          name: "Autopilot 退出",
+          sub: "辅助驾驶降级",
+          symptom: "TAKE OVER",
+          path: "software",
+          dtc: "ADAS 状态记录",
+          data: "摄像头 1 路降级",
+          measure: "环境条件不满足",
+          root: "传感器可用性触发退出",
+          steps: [
+            ["确认故障现象", "辅助驾驶偶发退出并要求驾驶员立即接管，不能直接承诺永久修复。"],
+            ["确认安全状态", "先确认驾驶员保持注意力，记录退出时的道路和天气条件。"],
+            ["读取系统状态", "查看摄像头可用性、驾驶员监测和 ADAS 状态记录。"],
+            ["排除环境因素", "检查逆光、雨雪、污渍、车道线和驾驶员手部状态。"],
+            ["确认共同根因", "传感器可用性不足触发降级，清洁并更新软件后验证。"],
+          ],
+        },
+        {
+          name: "间歇性通信故障",
+          sub: "无法稳定复现",
+          symptom: "INTERMITTENT FAULT",
+          path: "network",
+          dtc: "U 类历史码",
+          data: "仅在振动时出现",
+          measure: "波形偶发毛刺",
+          root: "连接器微动腐蚀",
+          steps: [
+            ["确认故障现象", "故障无法稳定复现，多个 ECU 偶发出现通信或信号异常。"],
+            ["建立发生条件", "记录温度、车速、振动、唤醒时序和最近维修历史。"],
+            ["查看冻结帧", "对比历史 DTC、报文周期和故障发生时的电压数据。"],
+            ["做物理验证", "检查接插件、搭铁和线束，使用示波器捕捉偶发毛刺。"],
+            ["确认共同根因", "长期记录复现出连接器微动腐蚀，处理后持续观察验证。"],
+          ],
+        },
+        {
+          name: "历史偶发 DTC",
+          sub: "冻结帧与公告",
+          symptom: "HISTORY DTC",
+          path: "software",
+          dtc: "P0AFA 历史",
+          data: "低温快充时记录",
+          measure: "当前未复现",
+          root: "边界条件下偶发报码",
+          steps: [["确认故障现象", "当前没有明显症状，但扫描工具保留了历史或偶发故障码。"], ["读取冻结帧", "查看故障发生时的温度、电压、SOC 和运行条件。"], ["查询技术公告", "核对固件版本和全球技术公告，确认是否为已知软件问题。"], ["检查物理连接", "若无公告，再检查供电、接地、接插件和线束。"], ["确认共同根因", "清码并观察；只有再次复现且证据充分时才更换部件。"]],
+        },
+        {
+          name: "冬季续航下降",
+          sub: "低温能耗",
+          symptom: "RANGE DROP",
+          path: "power",
+          dtc: "无当前 DTC",
+          data: "电池 -8°C",
+          measure: "加热功率升高",
+          root: "低温加热与回收受限",
+          steps: [["确认故障现象", "冬季续航下降，但车辆没有动力系统故障提示。"], ["拆分能耗来源", "比较座舱加热、电池预热、轮胎和高速行驶带来的能耗。"], ["查看电池状态", "低温会降低可用功率并限制能量回收。"], ["验证使用条件", "对比预热、充电后出发和不同环境温度下的数据。"], ["确认共同根因", "低温热管理能耗是主因，优化预热和驾驶条件后恢复。"]],
+        },
+        {
+          name: "车辆无法行驶警告",
+          sub: "高速安全处置",
+          symptom: "RED DRIVE ALERT",
+          path: "power",
+          dtc: "动力域 DTC",
+          data: "VCU 进入降级",
+          measure: "车辆仍可滑行",
+          root: "先完成安全停车再诊断",
+          steps: [["确认故障现象", "高速行驶中出现红色车辆无法行驶提示，优先级是人身安全。"], ["执行安全动作", "保持方向，开启双闪，缓慢驶向安全区域并联系道路救援。"], ["避免二次损伤", "不反复加速或强行上高压，不在危险位置拆检。"], ["记录诊断信息", "停车后保存警告、DTC、车辆位置和发生时工况。"], ["确认共同根因", "安全转移车辆后再按动力、低压和通信层级诊断。"]],
+        },
+        {
+          name: "低速底盘异响",
+          sub: "减速带咯吱声",
+          symptom: "SQUEAK / KNOCK",
+          path: "actuator",
+          dtc: "无当前 DTC",
+          data: "仅低速起伏路",
+          measure: "衬套受力异响",
+          root: "悬架连接件或衬套异常",
+          steps: [["确认故障现象", "低速经过减速带时出现咯吱或金属摩擦声。"], ["建立复现条件", "区分声音与车速、转向、制动和单轮起伏的关系。"], ["定位声源", "路试后用举升机、听诊工具和逐件加载定位。"], ["检查机械状态", "检查稳定杆、球头、衬套、紧固件和制动护板。"], ["确认共同根因", "修复松旷或干涉部件，按相同路况复测无异响。"]],
+        },
+        {
+          name: "维修后共振异响",
+          sub: "交车前复测",
+          symptom: "REAR RESONANCE",
+          path: "actuator",
+          dtc: "无当前 DTC",
+          data: "特定转速共振",
+          measure: "内饰件 / 线束振动",
+          root: "维修后部件或线束未固定",
+          steps: [["确认故障现象", "车辆已完成维修，但试车时后排仍有轻微共振异响。"], ["锁定复现窗口", "记录车速、路面、转速和声音出现的固定条件。"], ["优先检查高概率点", "检查座椅、内饰板、线束卡扣和维修区域附近的松动件。"], ["短时验证修复", "对疑似部件加压或重新固定，按同一工况复测。"], ["确认共同根因", "找到并固定共振源；无法确认时记录证据，不带问题交车。"]],
+        },
+        {
+          name: "Dead 12V 应急",
+          sub: "道路救援",
+          symptom: "12V BATTERY DEAD",
+          path: "power",
+          dtc: "低压模块离线",
+          data: "车辆无法解锁",
+          measure: "VBAT 低于阈值",
+          root: "低压电池亏电",
+          steps: [["确认故障现象", "车辆无法解锁、上电或响应远程指令。"], ["先做安全隔离", "停在安全位置，确认车辆无高压碰撞或涉水风险。"], ["恢复低压入口", "按车型规定使用外部低压电源打开前舱或解锁通道。"], ["避免误操作", "不直接触碰橙色高压部件，不把临时搭电当作维修完成。"], ["确认共同根因", "补充或更换低压电池，并检查 DC/DC 和静态耗电。"]],
+        },
+        {
+          name: "碰撞后高压拖运",
+          sub: "气囊已展开",
+          symptom: "CRASH / HV RISK",
+          path: "power",
+          dtc: "碰撞安全状态",
+          data: "高压隔离待确认",
+          measure: "残余电压检查",
+          root: "完成高压隔离后运输",
+          steps: [["确认故障现象", "碰撞后气囊展开，车辆需要拖运或转移。"], ["建立危险区域", "远离橙色线束、电池包破损处和可能发热的部位。"], ["断开低压", "由受训人员按流程断开低压并等待系统放电。"], ["验证高压状态", "使用规定等级的仪表确认关键节点无残余电压。"], ["确认共同根因", "完成隔离、固定和合规拖运，严禁带故障强行行驶。"]],
+        },
+        {
+          name: "涉水后强行上电",
+          sub: "高压进水风险",
+          symptom: "WATER IMMERSION",
+          path: "power",
+          dtc: "绝缘故障待查",
+          data: "电池包进水迹象",
+          measure: "绝缘阻值下降",
+          root: "涉水后的二次高压损坏",
+          steps: [["确认故障现象", "车辆在涉水路段抛锚，车主曾反复尝试点火。"], ["停止继续上电", "立即停止启动和充电，设置警戒并联系专业救援。"], ["检查进水证据", "记录水位线、底盘泥污、接插件和电池包外观。"], ["测量安全状态", "按高压流程检查绝缘和残余电压，不能直接插拔高压件。"], ["确认共同根因", "区分原始进水与强行上电造成的二次损坏，形成检测报告。"]],
+        },
+        {
+          name: "再生制动异常",
+          sub: "回收与机械制动",
+          symptom: "BRAKE BLEND",
+          path: "actuator",
+          dtc: "制动系统状态",
+          data: "回收扭矩受限",
+          measure: "机械制动介入",
+          root: "回收边界触发机械制动",
+          steps: [["确认故障现象", "松开加速踏板或轻踩制动时，减速感与平时不同。"], ["查看工况", "记录电池 SOC、温度、车速和是否触发 ABS/稳定控制。"], ["比较扭矩路径", "区分电机回收扭矩与 iBooster 机械制动压力。"], ["执行制动测试", "确认踏板、压力传感器和机械制动执行均正常。"], ["确认共同根因", "电池满电或低温限制回收，系统正常切换机械制动。"]],
+        },
+        {
+          name: "LIN 从节点不响应",
+          sub: "车身附属功能",
+          symptom: "LIN NO RESPONSE",
+          path: "network",
+          dtc: "LIN 从节点超时",
+          data: "主节点有调度",
+          measure: "单线无有效响应",
+          root: "从节点供电或线束故障",
+          steps: [["确认故障现象", "雨刮、门锁、车窗或座椅等一个附属功能失效。"], ["确认主节点调度", "检查主节点是否按调度表发送唤醒和请求帧。"], ["检查从节点供电", "测量从节点电源、搭铁和唤醒条件。"], ["查看单线波形", "检查 LIN 线是否短路、断路或被其他负载拉低。"], ["确认共同根因", "恢复从节点供电或线束后，响应帧重新出现。"]],
+        },
+        {
+          name: "CAN-H / CAN-L 短路",
+          sub: "物理层故障",
+          symptom: "BUS SHORT",
+          path: "network",
+          dtc: "U 类通信故障",
+          data: "多个网段离线",
+          measure: "对地电压异常",
+          root: "CAN 线束对地短路",
+          steps: [["确认故障现象", "一个网段内多个 ECU 同时掉线，报文监控几乎为空。"], ["检查供电与终端", "先排除公共低压供电和终端电阻问题。"], ["测量静态电阻", "断电分别测 CAN-H、CAN-L 对地和对电源的阻值。"], ["分段隔离线束", "从网关或接插件逐段断开，观察故障是否消失。"], ["确认共同根因", "定位磨损线束并修复，确认波形和报文周期恢复。"]],
+        },
+        {
+          name: "性能被限制投诉",
+          sub: "BMS 功率管理",
+          symptom: "POWER LIMITED",
+          path: "software",
+          dtc: "无直接 DTC",
+          data: "SOC / 温度限制",
+          measure: "峰值功率下降",
+          root: "电池保护策略生效",
+          steps: [["确认客户感受", "先承认动力体验变化，再区分主观感受和可测量数据。"], ["读取动力日志", "比较加速时间、峰值功率、SOC、电池温度和环境条件。"], ["检查功率边界", "查看 BMS 的温度、健康度和充放电功率限制信号。"], ["排除硬件问题", "确认电机、逆变器、踏板和通信数据合理。"], ["确认共同根因", "保护策略限制可用功率，条件恢复后输出能力回升。"]],
+        },
+        {
+          name: "电机控制器过温",
+          sub: "工程排错故事",
+          symptom: "INVERTER OVERHEAT",
+          path: "actuator",
+          dtc: "MCU 温度 DTC",
+          data: "局部温升异常",
+          measure: "冷却流量正常",
+          root: "IGBT 驱动板焊点裂纹",
+          steps: [["确认故障现象", "电机控制器报告过温，但冷却回路和水泵运行正常。"], ["分工收集证据", "一组检查冷却，一组读取 MCU 日志，另一组检查功率模块。"], ["对比温升位置", "发现局部功率器件温升与整体冷却温度不一致。"], ["检查硬件细节", "拆检后发现 IGBT 驱动板焊点在运输振动后产生裂纹。"], ["确认共同根因", "修复焊点并验证温升曲线，控制器恢复正常。"]],
+        },
+        {
+          name: "维修后线束磨损",
+          sub: "二次故障",
+          symptom: "HARNESS RUB",
+          path: "network",
+          dtc: "信号偶发丢失",
+          data: "随振动触发",
+          measure: "绝缘层磨穿",
+          root: "维修后固定不规范",
+          steps: [["确认故障现象", "更换传感器后车辆出现与振动相关的间歇性故障。"], ["回顾维修记录", "确认故障首次出现时间与上次维修操作高度相关。"], ["检查线束走向", "查看卡扣、弯曲半径和是否与支架或运动部件干涉。"], ["做振动复现", "轻微移动线束时信号丢失，绝缘层出现磨损。"], ["确认共同根因", "重新固定并修复线束，复测振动工况无故障。"]],
+        },
+        {
+          name: "Toolbox 数据矛盾",
+          sub: "数据与实物交叉验证",
+          symptom: "DATA MISMATCH",
+          path: "software",
+          dtc: "状态显示正常",
+          data: "实车功能异常",
+          measure: "传感器实测偏差",
+          root: "数据源或传感器不可信",
+          steps: [["确认矛盾现象", "诊断电脑显示状态正常，但车辆实际动作或测量结果异常。"], ["确认数据来源", "检查信号更新时间、单位、缩放和是否为缓存值。"], ["交叉测量", "用万用表、示波器或机械测量对照真实物理状态。"], ["分离故障层级", "判断是传感器、通信、软件显示还是实际执行器问题。"], ["确认共同根因", "以可重复的实测和日志为依据，而不是盲信单一界面。"]],
+        },
+      ];
+      let ci = 0,
+        si = 0,
+        timer = null;
+      $("#caseTabs").innerHTML = cases
+        .map(
+          (c, i) =>
+            `<button class="${i === 0 ? "active" : ""}" data-case="${i}"><b>${c.name}</b><small>${c.sub}</small></button>`,
+        )
+        .join("");
+      function setup(c) {
+        const d = devicePixelRatio || 1,
+          w = c.clientWidth,
+          h = c.clientHeight;
+        c.width = w * d;
+        c.height = h * d;
+        const x = c.getContext("2d");
+        x.setTransform(d, 0, 0, d, 0, 0);
+        return { x, w, h };
+      }
+      function node(x, cx, cy, w, h, title, sub, on, bad = false) {
+        x.fillStyle = on ? (bad ? "#2b181b" : "#173034") : "#10171c";
+        x.strokeStyle = on ? (bad ? "#ff6969" : "#58d1d4") : "#34414a";
+        x.lineWidth = 1.5;
+        x.fillRect(cx - w / 2, cy - h / 2, w, h);
+        x.strokeRect(cx - w / 2, cy - h / 2, w, h);
+        x.textAlign = "center";
+        x.fillStyle = on ? "#edf1f2" : "#8b979f";
+        x.font = "600 14px Manrope";
+        x.fillText(title, cx, cy - 2);
+        x.fillStyle = bad ? "#ff9696" : "#6f7d86";
+        x.font = "11px DM Mono";
+        x.fillText(sub, cx, cy + 17);
+      }
+      function draw(t = 0) {
+        const c = $("#treeCanvas"),
+          { x, w, h } = setup(c),
+          cs = cases[ci],
+          mobile = w < 620,
+          root = { x: w / 2, y: 70 },
+          branches = mobile
+            ? [
+                { x: w * 0.25, y: 210, n: "供电 / 接地", id: "power" },
+                { x: w * 0.75, y: 210, n: "通信 / 线束", id: "network" },
+                { x: w * 0.25, y: 360, n: "硬件模块", id: "actuator" },
+                { x: w * 0.75, y: 360, n: "软件 / 配置", id: "software" },
+              ]
+            : [
+                { x: w * 0.14, y: 250, n: "供电 / 接地", id: "power" },
+                { x: w * 0.38, y: 250, n: "通信 / 线束", id: "network" },
+                { x: w * 0.62, y: 250, n: "硬件模块", id: "actuator" },
+                { x: w * 0.86, y: 250, n: "软件 / 配置", id: "software" },
+              ],
+          bw = Math.min(150, w * 0.3);
+        x.fillStyle = "#090e12";
+        x.fillRect(0, 0, w, h);
+        branches.forEach((b, i) => {
+          const active = si >= 1 && (b.id === cs.path || si === 1),
+            chosen = si >= 3 && b.id === cs.path;
+          x.strokeStyle = chosen ? "#58d1d4" : "#34414a";
+          x.setLineDash(active ? [5, 5] : []);
+          x.beginPath();
+          x.moveTo(root.x, root.y + 32);
+          x.lineTo(b.x, b.y - 31);
+          x.stroke();
+          x.setLineDash([]);
+          node(
+            x,
+            b.x,
+            b.y,
+            bw,
+            62,
+            b.n,
+            chosen ? "MATCH" : si >= 1 ? "CHECK" : "PENDING",
+            active,
+            si >= 4 && b.id !== cs.path,
+          );
+        });
+        node(x, root.x, root.y, bw + 30, 64, cs.symptom, "SYMPTOM", true);
+        const finalY = mobile ? h - 70 : h - 75,
+          chosen = branches.find((b) => b.id === cs.path);
+        x.strokeStyle = si >= 4 ? "#71d49a" : "#34414a";
+        x.beginPath();
+        x.moveTo(chosen.x, chosen.y + 31);
+        x.lineTo(w / 2, finalY - 31);
+        x.stroke();
+        node(
+          x,
+          w / 2,
+          finalY,
+          bw + 50,
+          62,
+          si >= 4 ? cs.root : "根因待确认",
+          si >= 4 ? "ROOT CAUSE" : "MORE EVIDENCE",
+          si >= 4,
+        );
+        if (si > 0 && si < 5) {
+          const p = (t / 900) % 1;
+          x.fillStyle = "#e6c06b";
+          x.beginPath();
+          x.arc(
+            root.x + (chosen.x - root.x) * p,
+            root.y + 32 + (chosen.y - 31 - root.y - 32) * p,
+            5,
+            0,
+            Math.PI * 2,
+          );
+          x.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      function update() {
+        const cs = cases[ci],
+          s = cs.steps[si];
+        $("#stepCode").textContent = "STEP " + String(si).padStart(2, "0");
+        $("#stepTitle").textContent = s[0];
+        $("#stepDesc").textContent = s[1];
+        $("#evDtc").textContent = cs.dtc;
+        $("#evData").textContent = si >= 2 ? cs.data : "待读取";
+        $("#evMeasure").textContent = si >= 3 ? cs.measure : "待测量";
+        $("#evLayer").textContent =
+          si >= 4
+            ? { power: "供电层", network: "通信线束", actuator: "硬件负载" }[
+                cs.path
+              ]
+            : "待判断";
+        $("#conclusion").textContent = si >= 4 ? cs.root : "证据不足，继续收集";
+      }
+      function stop() {
+        if (timer) clearInterval(timer);
+        timer = null;
+        $("#diagPlay").classList.remove("active");
+        $("#diagPlay").textContent = "播放";
+      }
+      function next() {
+        si++;
+        if (si >= cases[ci].steps.length) si = 0;
+        update();
+      }
+      document.querySelectorAll("[data-case]").forEach(
+        (b) =>
+          (b.onclick = () => {
+            stop();
+            document
+              .querySelectorAll("[data-case]")
+              .forEach((x) => x.classList.remove("active"));
+            b.classList.add("active");
+            ci = +b.dataset.case;
+            si = 0;
+            update();
+          }),
+      );
+      $("#diagReset").onclick = () => {
+        stop();
+        si = 0;
+        update();
+      };
+      $("#diagStep").onclick = () => {
+        stop();
+        next();
+      };
+      $("#diagPlay").onclick = () => {
+        if (timer) {
+          stop();
+          return;
+        }
+        $("#diagPlay").classList.add("active");
+        $("#diagPlay").textContent = "暂停";
+        timer = setInterval(next, 1800);
+      };
+      update();
+      draw();
+    </script>
+  </body>
+</html>

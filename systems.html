@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VECTRA · 车辆机电系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="site.css" />
+    <style>
+      .domain-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-bottom: 1px solid var(--line);
+      }
+      .domain-tabs button {
+        border: 0;
+        border-right: 1px solid var(--line);
+        background: #0d1318;
+        color: #87939c;
+        padding: 13px 10px;
+        cursor: pointer;
+        text-align: left;
+      }
+      .domain-tabs button:last-child {
+        border-right: 0;
+      }
+      .domain-tabs button.active {
+        background: #1a3033;
+        color: #e2ffff;
+      }
+      .domain-tabs b {
+        display: block;
+        font-size: 11px;
+      }
+      .domain-tabs small {
+        display: block;
+        font-size: 8px;
+        margin-top: 4px;
+        color: #65727b;
+      }
+      .system-stage {
+        height: 430px;
+        background: #090e12;
+        position: relative;
+      }
+      .system-stage canvas {
+        width: 100%;
+        height: 100%;
+      }
+      .fault-bar {
+        padding: 11px 14px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .faults {
+        display: flex;
+        gap: 5px;
+      }
+      .faults button {
+        border: 1px solid var(--line);
+        background: #0d1318;
+        color: #9da8af;
+        padding: 7px 9px;
+        font-size: 9px;
+        cursor: pointer;
+      }
+      .faults button.active {
+        border-color: #6b4145;
+        background: #321f22;
+        color: #ffb0b0;
+      }
+      .result {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .result > div {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 14px;
+      }
+      .result small {
+        color: #66737c;
+        font-size: 9px;
+      }
+      .result strong {
+        display: block;
+        font-size: 11px;
+        margin-top: 8px;
+      }
+      .logic {
+        margin-top: 12px;
+      }
+      .logic-body {
+        padding: 16px;
+      }
+      .logic-steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+      .logic-step {
+        border: 1px solid #2d3941;
+        background: #0d1318;
+        padding: 11px;
+      }
+      .logic-step b {
+        color: var(--cyan);
+        font: 9px "DM Mono";
+      }
+      .logic-step strong {
+        display: block;
+        margin: 7px 0 4px;
+        font-size: 10px;
+      }
+      .logic-step span {
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 1.45;
+      }
+      .fault-note {
+        margin-top: 12px;
+      }
+      @media (max-width: 760px) {
+        .domain-tabs {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .system-stage {
+          height: 500px;
+        }
+        .fault-bar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .faults {
+          flex-wrap: wrap;
+        }
+        .result {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .logic-steps {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="readable.css" />
+  </head>
+  <body class="systems-page">
+    <div class="shell">
+      <aside class="side">
+        <div class="brand">
+          <div class="brand-mark"><img src="assets/tesla-logo-mark.png" alt="Tesla" /></div>
+          <div><strong>VECTRA</strong><small>VEHICLE SUPPORT LAB</small></div>
+        </div>
+        <div class="side-label">LEARNING MAP</div>
+        <nav class="nav">
+          <a href="index.html"><b>00</b><span>学习总览</span></a
+          ><a href="network.html"><b>01</b><span>车载网络</span></a
+          ><a href="circuits.html"><b>02</b><span>低压电气</span></a
+          ><a class="active" href="systems.html"
+            ><b>03</b><span>机电系统</span></a
+          ><a href="software.html"><b>04</b><span>软件与刷写</span></a
+          ><a href="diagnosis.html"><b>05</b><span>诊断方法</span></a>
+        </nav>
+        <div class="side-foot"><i></i>INPUT · CONTROL · OUTPUT</div>
+      </aside>
+      <main class="main">
+        <header class="page-head">
+          <div>
+            <div class="eyebrow">03 / ELECTROMECHANICAL SYSTEMS</div>
+            <h1>车辆机电系统</h1>
+            <p>
+              不背零件清单。选择一个系统，观察传感器输入、控制器判断、执行器输出和跨域通信怎样共同完成车辆功能。
+            </p>
+          </div>
+          <a class="back" href="index.html">← 返回总览</a>
+        </header>
+        <section class="panel">
+          <div class="domain-tabs" id="domainTabs"></div>
+          <div class="system-stage"><canvas id="systemCanvas"></canvas></div>
+          <div class="fault-bar">
+            <span id="sceneCaption" style="color: var(--muted); font-size: 10px"
+              >正常运行：输入、控制、通信和执行反馈闭环一致。</span
+            >
+            <div class="faults">
+              <button class="active" data-fault="normal">正常</button
+              ><button data-fault="sensor">传感器异常</button
+              ><button data-fault="network">通信丢失</button
+              ><button data-fault="actuator">执行器故障</button>
+            </div>
+          </div>
+        </section>
+        <section class="result">
+          <div>
+            <small>当前输入</small><strong id="inputState">有效</strong>
+          </div>
+          <div>
+            <small>控制器判断</small><strong id="logicState">允许执行</strong>
+          </div>
+          <div><small>总线依赖</small><strong id="busState">在线</strong></div>
+          <div>
+            <small>执行反馈</small><strong id="outputState">目标一致</strong>
+          </div>
+        </section>
+        <section class="panel logic">
+          <div class="panel-head">
+            <h2>诊断分层</h2>
+            <small>DO NOT REPLACE PARTS FIRST</small>
+          </div>
+          <div class="logic-body">
+            <div class="logic-steps">
+              <div class="logic-step">
+                <b>01</b><strong>确认输入</strong
+                ><span>传感器值是否合理、是否随工况变化。</span>
+              </div>
+              <div class="logic-step">
+                <b>02</b><strong>查看命令</strong
+                ><span>控制器是否满足执行条件并发出命令。</span>
+              </div>
+              <div class="logic-step">
+                <b>03</b><strong>检查路径</strong
+                ><span>供电、搭铁、线束和 CAN/LIN 是否正常。</span>
+              </div>
+              <div class="logic-step">
+                <b>04</b><strong>比较反馈</strong
+                ><span>实际动作是否跟随命令，修复后是否复现。</span>
+              </div>
+            </div>
+            <div class="notice fault-note" id="faultNote">
+              系统正常时，命令值与反馈值应形成闭环。故障诊断的关键是找出闭环在哪一段断开。
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const domains = [
+        {
+          id: "body",
+          name: "车身域",
+          sub: "门锁 · 车窗 · 雨刮",
+          sensor: ["门把手开关", "雨量传感器"],
+          ecu: "BCM",
+          bus: "LIN / CAN",
+          act: ["门锁电机", "雨刮电机"],
+        },
+        {
+          id: "chassis",
+          name: "底盘域",
+          sub: "制动 · 转向 · 悬架",
+          sensor: ["轮速传感器", "制动踏板"],
+          ecu: "ESP / iBooster",
+          bus: "高速 CAN",
+          act: ["制动执行器", "EPS 电机"],
+        },
+        {
+          id: "power",
+          name: "动力域",
+          sub: "电池 · 逆变器 · 电机",
+          sensor: ["踏板位置", "电池状态"],
+          ecu: "VCU / BMS",
+          bus: "动力 CAN",
+          act: ["逆变器", "主接触器"],
+        },
+        {
+          id: "thermal",
+          name: "热管理",
+          sub: "冷却回路 · 热泵",
+          sensor: ["冷却液温度", "压力传感器"],
+          ecu: "TMS",
+          bus: "CAN / LIN",
+          act: ["水泵 / 风扇", "电磁阀"],
+        },
+      ];
+      let domain = 0,
+        fault = "normal";
+      $("#domainTabs").innerHTML = domains
+        .map(
+          (d, i) =>
+            `<button class="${i === 0 ? "active" : ""}" data-domain="${i}"><b>${d.name}</b><small>${d.sub}</small></button>`,
+        )
+        .join("");
+      function setup(c) {
+        const d = devicePixelRatio || 1,
+          w = c.clientWidth,
+          h = c.clientHeight;
+        c.width = w * d;
+        c.height = h * d;
+        const x = c.getContext("2d");
+        x.setTransform(d, 0, 0, d, 0, 0);
+        return { x, w, h };
+      }
+      function box(x, cx, cy, w, h, title, sub, color, bad = false) {
+        x.fillStyle = bad ? "#28171a" : "#111920";
+        x.strokeStyle = bad ? "#ff6969" : color;
+        x.lineWidth = 1.5;
+        x.fillRect(cx - w / 2, cy - h / 2, w, h);
+        x.strokeRect(cx - w / 2, cy - h / 2, w, h);
+        x.textAlign = "center";
+        x.fillStyle = "#edf1f2";
+        x.font = "600 14px Manrope";
+        x.fillText(title, cx, cy - 2);
+        x.fillStyle = bad ? "#ff9292" : "#71808a";
+        x.font = "10px DM Mono";
+        x.fillText(sub, cx, cy + 16);
+      }
+      function draw(t = 0) {
+        const c = $("#systemCanvas"),
+          { x, w, h } = setup(c),
+          d = domains[domain],
+          mobile = w < 600,
+          ecuX = w / 2,
+          ecuY = h / 2,
+          sx = mobile ? w * 0.25 : w * 0.16,
+          ax = mobile ? w * 0.75 : w * 0.84,
+          ys = mobile ? [h * 0.18, h * 0.8] : [h * 0.34, h * 0.66],
+          bw = Math.min(135, w * 0.28);
+        x.fillStyle = "#090e12";
+        x.fillRect(0, 0, w, h);
+        x.strokeStyle = "#19242b";
+        for (let gx = 40; gx < w; gx += 70) {
+          x.beginPath();
+          x.moveTo(gx, 0);
+          x.lineTo(gx, h);
+          x.stroke();
+        }
+        const sensorBad = fault === "sensor",
+          networkBad = fault === "network",
+          actBad = fault === "actuator";
+        d.sensor.forEach((n, i) => {
+          box(
+            x,
+            sx,
+            ys[i],
+            bw,
+            55,
+            n,
+            "INPUT " + (i + 1),
+            "#58d1d4",
+            sensorBad && i === 0,
+          );
+          x.strokeStyle = sensorBad && i === 0 ? "#ff6969" : "#38565d";
+          x.setLineDash([4, 4]);
+          x.beginPath();
+          x.moveTo(sx + bw / 2, ys[i]);
+          x.lineTo(ecuX - bw / 2, ecuY + (i ? 18 : -18));
+          x.stroke();
+        });
+        x.setLineDash([]);
+        box(x, ecuX, ecuY, bw + 15, 75, d.ecu, "CONTROL LOGIC", "#71d49a");
+        d.act.forEach((n, i) => {
+          box(
+            x,
+            ax,
+            ys[i],
+            bw,
+            55,
+            n,
+            "ACTUATOR " + (i + 1),
+            "#ff9c5b",
+            actBad && i === 0,
+          );
+          x.strokeStyle = actBad && i === 0 ? "#ff6969" : "#5b493d";
+          x.beginPath();
+          x.moveTo(ecuX + (bw + 15) / 2, ecuY + (i ? 18 : -18));
+          x.lineTo(ax - bw / 2, ys[i]);
+          x.stroke();
+        });
+        const busY = mobile ? h * 0.08 : h * 0.13;
+        x.strokeStyle = networkBad ? "#ff6969" : "#58d1d4";
+        x.setLineDash(networkBad ? [5, 7] : []);
+        x.lineWidth = 2;
+        x.beginPath();
+        x.moveTo(w * 0.1, busY);
+        x.lineTo(w * 0.9, busY);
+        x.stroke();
+        x.setLineDash([]);
+        x.fillStyle = networkBad ? "#ff6969" : "#58d1d4";
+        x.textAlign = "center";
+        x.font = "11px DM Mono";
+        x.fillText(networkBad ? "COMMUNICATION LOST" : d.bus, w / 2, busY - 10);
+        x.strokeStyle = networkBad ? "#593034" : "#34545a";
+        x.beginPath();
+        x.moveTo(ecuX, busY);
+        x.lineTo(ecuX, ecuY - 37);
+        x.stroke();
+        const p = (t / 1700) % 1;
+        if (fault === "normal") {
+          x.fillStyle = "#71d49a";
+          x.beginPath();
+          x.arc(sx + (ax - sx) * p, ecuY, 4, 0, Math.PI * 2);
+          x.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      function update() {
+        const d = domains[domain],
+          states = {
+            normal: [
+              "有效",
+              "允许执行",
+              "在线",
+              "目标一致",
+              "正常运行：输入、控制、通信和执行反馈闭环一致。",
+              "系统正常时，命令值与反馈值应形成闭环。故障诊断的关键是找出闭环在哪一段断开。",
+            ],
+            sensor: [
+              "不合理 / 冻结",
+              "拒绝或降级",
+              "在线",
+              "未执行",
+              "传感器异常：控制器收到错误输入，可能进入保护或使用替代值。",
+              "先测参考电压、传感器地和信号变化，不要直接更换控制器。",
+            ],
+            network: [
+              "局部有效",
+              "缺少跨域条件",
+              "报文超时",
+              "禁止执行",
+              "通信丢失：本地硬件可能正常，但控制器缺少其他域的许可或状态。",
+              "同时检查节点供电、终端电阻、波形和报文周期，DTC 只是线索。",
+            ],
+            actuator: [
+              "有效",
+              "命令已发出",
+              "在线",
+              "无动作 / 偏差",
+              "执行器故障：控制命令存在，但实际反馈没有跟随。",
+              "测负载两端电压与电流，区分驱动器、线束、负载开路和机械卡滞。",
+            ],
+          }[fault];
+        ["inputState", "logicState", "busState", "outputState"].forEach(
+          (id, i) => ($("#" + id).textContent = states[i]),
+        );
+        $("#sceneCaption").textContent = states[4];
+        $("#faultNote").textContent = states[5];
+      }
+      document.querySelectorAll("[data-domain]").forEach(
+        (b) =>
+          (b.onclick = () => {
+            document
+              .querySelectorAll("[data-domain]")
+              .forEach((x) => x.classList.remove("active"));
+            b.classList.add("active");
+            domain = +b.dataset.domain;
+            update();
+          }),
+      );
+      document.querySelectorAll("[data-fault]").forEach(
+        (b) =>
+          (b.onclick = () => {
+            document
+              .querySelectorAll("[data-fault]")
+              .forEach((x) => x.classList.remove("active"));
+            b.classList.add("active");
+            fault = b.dataset.fault;
+            update();
+          }),
+      );
+      update();
+      draw();
+    </script>
+  </body>
+</html>

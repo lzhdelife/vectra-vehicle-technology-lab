@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VECTRA · 软件与刷写</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="site.css" />
+    <style>
+      .deploy {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 290px;
+      }
+      .deploy-stage {
+        height: 430px;
+        background: #090e12;
+        position: relative;
+        border-right: 1px solid var(--line);
+      }
+      .deploy-stage canvas {
+        width: 100%;
+        height: 100%;
+      }
+      .deploy-side {
+        padding: 16px;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+        margin-bottom: 14px;
+      }
+      .controls button {
+        border: 1px solid var(--line);
+        background: #0d1318;
+        color: #a7b1b8;
+        padding: 8px 5px;
+        font-size: 9px;
+        cursor: pointer;
+      }
+      .controls button.active {
+        border-color: #47777a;
+        color: #d7ffff;
+      }
+      .progress {
+        height: 4px;
+        background: #212b32;
+        margin: 12px 0;
+      }
+      .progress i {
+        display: block;
+        height: 100%;
+        background: var(--cyan);
+        width: 0;
+        transition: 0.3s;
+      }
+      .stage-name {
+        font-size: 16px;
+        margin: 7px 0;
+      }
+      .stage-desc {
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.55;
+        min-height: 48px;
+      }
+      .prechecks {
+        display: grid;
+        gap: 7px;
+        border-top: 1px solid var(--line);
+        padding-top: 13px;
+        margin-top: 14px;
+      }
+      .prechecks div {
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+      }
+      .prechecks span {
+        color: var(--muted);
+      }
+      .prechecks b {
+        font: 500 9px "DM Mono";
+      }
+      .failures {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .failure {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 14px;
+        cursor: pointer;
+      }
+      .failure:hover,
+      .failure.active {
+        border-color: #6c4145;
+        background: #211619;
+      }
+      .failure small {
+        color: var(--red);
+        font: 8px "DM Mono";
+      }
+      .failure h3 {
+        font-size: 11px;
+        margin: 8px 0 5px;
+      }
+      .failure p {
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 1.45;
+        margin: 0;
+      }
+      .dependency {
+        margin-top: 12px;
+      }
+      .dependency-body {
+        padding: 17px;
+      }
+      .dependency-map {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        overflow: auto;
+      }
+      .version {
+        min-width: 150px;
+        border: 1px solid #334149;
+        background: #0d1318;
+        padding: 11px;
+      }
+      .version strong {
+        display: block;
+        font-size: 10px;
+      }
+      .version span {
+        display: block;
+        color: var(--muted);
+        font: 8px "DM Mono";
+        margin-top: 5px;
+      }
+      .version.bad {
+        border-color: #6e4246;
+      }
+      .dep-arrow {
+        color: #58656e;
+      }
+      @media (max-width: 900px) {
+        .deploy {
+          grid-template-columns: 1fr;
+        }
+        .deploy-stage {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .failures {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 620px) {
+        .deploy-stage {
+          height: 480px;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="readable.css" />
+  </head>
+  <body class="software-page">
+    <div class="shell">
+      <aside class="side">
+        <div class="brand">
+          <div class="brand-mark"><img src="assets/tesla-logo-mark.png" alt="Tesla" /></div>
+          <div><strong>VECTRA</strong><small>VEHICLE SUPPORT LAB</small></div>
+        </div>
+        <div class="side-label">LEARNING MAP</div>
+        <nav class="nav">
+          <a href="index.html"><b>00</b><span>学习总览</span></a
+          ><a href="network.html"><b>01</b><span>车载网络</span></a
+          ><a href="circuits.html"><b>02</b><span>低压电气</span></a
+          ><a href="systems.html"><b>03</b><span>机电系统</span></a
+          ><a class="active" href="software.html"
+            ><b>04</b><span>软件与刷写</span></a
+          ><a href="diagnosis.html"><b>05</b><span>诊断方法</span></a>
+        </nav>
+        <div class="side-foot"><i></i>SAFE DEPLOYMENT</div>
+      </aside>
+      <main class="main">
+        <header class="page-head">
+          <div>
+            <div class="eyebrow">04 / SOFTWARE · OTA · FLASH</div>
+            <h1>软件与关键应用部署</h1>
+            <p>
+              车辆刷写不是“复制文件”。它需要稳定低压、正确会话、安全访问、完整性校验、版本兼容和失败恢复。
+            </p>
+          </div>
+          <a class="back" href="index.html">← 返回总览</a>
+        </header>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>端到端 OTA / ECU 刷写动画</h2>
+            <small>BACKEND → GATEWAY → TARGET ECU</small>
+          </div>
+          <div class="deploy">
+            <div class="deploy-stage"><canvas id="deployCanvas"></canvas></div>
+            <aside class="deploy-side">
+              <div class="controls">
+                <button id="deployReset">重置</button
+                ><button id="deployStep">单步</button
+                ><button id="deployPlay">播放</button>
+              </div>
+              <span class="tag" id="stageCode">PRECHECK</span>
+              <h2 class="stage-name" id="stageName">部署前检查</h2>
+              <p class="stage-desc" id="stageDesc">
+                确认 12V 电压、车辆状态、网络连接和目标 ECU 软件身份。
+              </p>
+              <div class="progress"><i id="progressBar"></i></div>
+              <div class="prechecks">
+                <div>
+                  <span>12V 电压</span><b id="checkVoltage">12.6 V · PASS</b>
+                </div>
+                <div><span>诊断会话</span><b id="checkSession">DEFAULT</b></div>
+                <div><span>软件完整性</span><b id="checkHash">PENDING</b></div>
+                <div><span>活动分区</span><b id="checkBank">BANK A</b></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+        <section class="failures">
+          <article class="failure" data-failure="power">
+            <small>FAILURE 01</small>
+            <h3>刷写中低压掉电</h3>
+            <p>ECU 可能停留在 Bootloader；先恢复稳定供电，再进入恢复流程。</p>
+          </article>
+          <article class="failure" data-failure="version">
+            <small>FAILURE 02</small>
+            <h3>软件版本不匹配</h3>
+            <p>单个 ECU 更新成功，但依赖接口版本不兼容，功能仍可能异常。</p>
+          </article>
+          <article class="failure" data-failure="network">
+            <small>FAILURE 03</small>
+            <h3>传输中断</h3>
+            <p>0x36 分块传输超时；根据序号重试、重新建会话或回滚。</p>
+          </article>
+        </section>
+        <section class="panel dependency">
+          <div class="panel-head">
+            <h2>版本依赖关系</h2>
+            <small>SOFTWARE VS HARDWARE</small>
+          </div>
+          <div class="dependency-body">
+            <div class="dependency-map">
+              <div class="version">
+                <strong>Gateway</strong><span>v24.8.2 · API 7</span>
+              </div>
+              <b class="dep-arrow">→</b>
+              <div class="version">
+                <strong>VCU</strong><span>v18.3 · API 7</span>
+              </div>
+              <b class="dep-arrow">→</b>
+              <div class="version">
+                <strong>BMS</strong><span>v12.5 · API 7</span>
+              </div>
+              <b class="dep-arrow">→</b>
+              <div class="version">
+                <strong>MCU</strong><span>v9.2 · API 7</span>
+              </div>
+            </div>
+            <div class="notice" style="margin-top: 13px">
+              DTC
+              不等于零件损坏。刷写后出现通信故障时，先核对软件版本、配置和依赖接口，再判断硬件。
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const stages = [
+        {
+          code: "PRECHECK",
+          name: "部署前检查",
+          desc: "确认 12V 电压、车辆状态、网络连接和目标 ECU 软件身份。",
+        },
+        {
+          code: "0x10 / 0x27",
+          name: "进入编程会话",
+          desc: "切换到编程会话并完成安全访问，禁止未授权刷写。",
+        },
+        {
+          code: "DOWNLOAD",
+          name: "下载软件包",
+          desc: "后台将签名软件包送至车辆网关，网关校验车型与目标清单。",
+        },
+        {
+          code: "0x34 / 0x36",
+          name: "分块传输与写入",
+          desc: "请求下载后按序号传输数据块，同时写入非活动分区 Bank B。",
+        },
+        {
+          code: "VERIFY",
+          name: "完整性校验",
+          desc: "ECU 计算哈希并验证签名，确保内容完整且来源可信。",
+        },
+        {
+          code: "RESET",
+          name: "切换分区并重启",
+          desc: "激活 Bank B，执行 ECU Reset 并等待节点重新上线。",
+        },
+        {
+          code: "VALIDATE",
+          name: "部署后验证",
+          desc: "读取版本、DTC 和关键数据流；失败时回滚 Bank A。",
+        },
+      ];
+      let step = 0,
+        timer = null,
+        failure = "";
+      function setup(c) {
+        const d = devicePixelRatio || 1,
+          w = c.clientWidth,
+          h = c.clientHeight;
+        c.width = w * d;
+        c.height = h * d;
+        const x = c.getContext("2d");
+        x.setTransform(d, 0, 0, d, 0, 0);
+        return { x, w, h };
+      }
+      function box(x, cx, cy, w, h, t, s, color, on) {
+        x.fillStyle = on ? "#172c2f" : "#111920";
+        x.strokeStyle = on ? color : "#35424b";
+        x.lineWidth = 1.5;
+        x.fillRect(cx - w / 2, cy - h / 2, w, h);
+        x.strokeRect(cx - w / 2, cy - h / 2, w, h);
+        x.textAlign = "center";
+        x.fillStyle = "#edf1f2";
+        x.font = "600 14px Manrope";
+        x.fillText(t, cx, cy - 3);
+        x.fillStyle = "#71808a";
+        x.font = "10px DM Mono";
+        x.fillText(s, cx, cy + 15);
+      }
+      function draw(t = 0) {
+        const c = $("#deployCanvas"),
+          { x, w, h } = setup(c),
+          mobile = w < 600,
+          nodes = mobile
+            ? [
+                { x: w / 2, y: 70 },
+                { x: w / 2, y: 190 },
+                { x: w / 2, y: 315 },
+              ]
+            : [
+                { x: w * 0.18, y: h / 2 },
+                { x: w * 0.5, y: h / 2 },
+                { x: w * 0.82, y: h / 2 },
+              ],
+          titles = [
+            ["云端部署服务", "SIGNED PACKAGE"],
+            ["车辆网关", "ROUTING / VERIFY"],
+            ["目标 ECU", "BANK A / BANK B"],
+          ];
+        x.fillStyle = "#090e12";
+        x.fillRect(0, 0, w, h);
+        for (let i = 0; i < 2; i++) {
+          x.strokeStyle =
+            i < Math.min(2, Math.floor(step / 2)) ? "#58d1d4" : "#34424a";
+          x.lineWidth = 2;
+          x.beginPath();
+          x.moveTo(nodes[i].x, nodes[i].y);
+          x.lineTo(nodes[i + 1].x, nodes[i + 1].y);
+          x.stroke();
+        }
+        nodes.forEach((n, i) =>
+          box(
+            x,
+            n.x,
+            n.y,
+            Math.min(145, w * 0.5),
+            64,
+            titles[i][0],
+            titles[i][1],
+            i === 2 ? "#ff9c5b" : "#58d1d4",
+            step >= i * 2,
+          ),
+        );
+        const p = (t / 1500) % 1,
+          seg = step < 3 ? 0 : 1,
+          a = nodes[seg],
+          b = nodes[seg + 1],
+          px = a.x + (b.x - a.x) * p,
+          py = a.y + (b.y - a.y) * p;
+        x.fillStyle = failure ? "#ff6969" : "#58d1d4";
+        x.fillRect(px - 20, py - 10, 40, 20);
+        x.fillStyle = "#081013";
+        x.textAlign = "center";
+        x.font = "9px DM Mono";
+        x.fillText(failure ? "ERROR" : "BLOCK", px, py + 3);
+        if (step >= 3) {
+          const ecu = nodes[2],
+            bankY = mobile ? ecu.y + 70 : ecu.y + 95;
+          x.strokeStyle = "#46535c";
+          x.beginPath();
+          x.moveTo(ecu.x, ecu.y + 32);
+          x.lineTo(ecu.x, bankY);
+          x.stroke();
+          box(
+            x,
+            ecu.x - 55,
+            bankY,
+            90,
+            42,
+            "BANK A",
+            step < 6 ? "ACTIVE" : "BACKUP",
+            "#64717a",
+            step < 6,
+          );
+          box(
+            x,
+            ecu.x + 55,
+            bankY,
+            90,
+            42,
+            "BANK B",
+            step >= 6 ? "ACTIVE" : "WRITING",
+            "#71d49a",
+            step >= 4,
+          );
+        }
+        requestAnimationFrame(draw);
+      }
+      function show(i) {
+        step = (i + stages.length) % stages.length;
+        const s = stages[step];
+        $("#stageCode").textContent = s.code;
+        $("#stageName").textContent = s.name;
+        $("#stageDesc").textContent = s.desc;
+        $("#progressBar").style.width =
+          ((step + 1) / stages.length) * 100 + "%";
+        $("#checkSession").textContent = step >= 1 ? "PROGRAMMING" : "DEFAULT";
+        $("#checkHash").textContent = step >= 4 ? "VERIFIED" : "PENDING";
+        $("#checkBank").textContent = step >= 6 ? "BANK B" : "BANK A";
+        failure = "";
+      }
+      function stop() {
+        if (timer) clearInterval(timer);
+        timer = null;
+        $("#deployPlay").classList.remove("active");
+        $("#deployPlay").textContent = "播放";
+      }
+      $("#deployReset").onclick = () => {
+        stop();
+        show(0);
+      };
+      $("#deployStep").onclick = () => {
+        stop();
+        show(step + 1);
+      };
+      $("#deployPlay").onclick = () => {
+        if (timer) {
+          stop();
+          return;
+        }
+        $("#deployPlay").classList.add("active");
+        $("#deployPlay").textContent = "暂停";
+        timer = setInterval(() => show(step + 1), 1700);
+      };
+      document.querySelectorAll("[data-failure]").forEach(
+        (b) =>
+          (b.onclick = () => {
+            stop();
+            document
+              .querySelectorAll("[data-failure]")
+              .forEach((x) => x.classList.remove("active"));
+            b.classList.add("active");
+            failure = b.dataset.failure;
+            $("#stageCode").textContent = "DEPLOYMENT ERROR";
+            $("#stageName").textContent = b.querySelector("h3").textContent;
+            $("#stageDesc").textContent = b.querySelector("p").textContent;
+            $("#checkVoltage").textContent =
+              failure === "power" ? "8.9 V · FAIL" : "12.6 V · PASS";
+            $("#checkHash").textContent =
+              failure === "version"
+                ? "VERSION MISMATCH"
+                : failure === "network"
+                  ? "TRANSFER INCOMPLETE"
+                  : "UNKNOWN";
+          }),
+      );
+      show(0);
+      draw();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VECTRA · 车载网络</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="site.css" />
+    <style>
+      .domain-topology {
+        margin-top: 14px;
+      }
+      .domain-toolbar {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .scenario-switch,
+      .domain-controls {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+      .scenario-switch button,
+      .domain-controls button {
+        border: 1px solid var(--line);
+        background: #0d1318;
+        color: #aab5bc;
+        padding: 10px 13px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .scenario-switch button.active {
+        border-color: #4d7e81;
+        background: #193135;
+        color: #e2ffff;
+      }
+      .domain-controls button.active {
+        border-color: #4d7e81;
+        color: #e2ffff;
+      }
+      .domain-topology .network-map {
+        height: 620px !important;
+        position: relative;
+        background: #090e12;
+      }
+      .network-map canvas,
+      .lin-stage canvas {
+        width: 100%;
+        height: 100%;
+      }
+      .domain-caption {
+        min-height: 76px;
+        padding: 15px 18px;
+        border-top: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: 68px 1fr;
+        gap: 14px;
+        align-items: center;
+      }
+      .domain-caption b {
+        color: var(--cyan);
+        font: 500 15px "DM Mono";
+      }
+      .domain-caption span {
+        color: #c2cbd0;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .gateway-points {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 1px solid var(--line);
+      }
+      .gateway-point {
+        padding: 18px;
+        border-right: 1px solid var(--line);
+      }
+      .gateway-point:last-child {
+        border-right: 0;
+      }
+      .gateway-point b {
+        display: block;
+        color: var(--cyan);
+        font: 500 13px "DM Mono";
+        margin-bottom: 8px;
+      }
+      .gateway-point p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .domain-architecture {
+        border-top: 1px solid var(--line);
+        padding: 20px 18px 22px;
+      }
+      .domain-architecture h3 {
+        font-size: 16px;
+        margin: 0 0 16px;
+      }
+      .architecture-flow {
+        display: grid;
+        grid-template-columns: 1fr auto 1.15fr auto 1fr;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .architecture-node {
+        border: 1px solid #34434c;
+        background: #0d1419;
+        padding: 17px;
+      }
+      .architecture-node strong {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 8px;
+      }
+      .architecture-node span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+      .architecture-node.backbone {
+        border-color: #47777a;
+        background: #112326;
+      }
+      .architecture-arrow {
+        display: grid;
+        place-items: center;
+        color: var(--cyan);
+        font-size: 21px;
+      }
+      .architecture-note {
+        margin: 15px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .lin-stage {
+        height: 290px;
+        position: relative;
+        background: #090e12;
+      }
+      .controls {
+        display: flex;
+        gap: 5px;
+      }
+      .controls button {
+        border: 1px solid var(--line);
+        background: #0d1318;
+        color: #a7b1b8;
+        padding: 7px 9px;
+        font-size: 9px;
+        cursor: pointer;
+      }
+      .controls button.active {
+        border-color: #47777a;
+        color: #d7ffff;
+      }
+      .caption {
+        padding: 10px 14px;
+        border-top: 1px solid var(--line);
+        min-height: 53px;
+        color: #aab4ba;
+        font-size: 10px;
+        line-height: 1.5;
+      }
+      .caption b {
+        color: var(--cyan);
+        margin-right: 7px;
+      }
+      .uds-body {
+        padding: 16px;
+      }
+      .uds-flow {
+        display: grid;
+        gap: 7px;
+      }
+      .uds-step {
+        display: grid;
+        grid-template-columns: 60px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid #2c3840;
+        background: #0d1318;
+        padding: 10px;
+        cursor: pointer;
+      }
+      .uds-step.active {
+        border-color: #4b7b7e;
+        background: #172b2e;
+      }
+      .uds-step code {
+        color: var(--cyan);
+        font: 10px "DM Mono";
+      }
+      .uds-step strong {
+        font-size: 10px;
+      }
+      .uds-step span {
+        color: var(--muted);
+        font-size: 9px;
+      }
+      .uds-step i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #3c4750;
+      }
+      .uds-step.active i {
+        background: var(--green);
+        box-shadow: 0 0 0 4px #193127;
+      }
+      .uds-message {
+        margin-top: 12px;
+        background: #090e12;
+        border: 1px solid #26323a;
+        padding: 12px;
+      }
+      .uds-message small {
+        display: block;
+        color: #687680;
+        font: 8px "DM Mono";
+      }
+      .uds-message strong {
+        display: block;
+        font: 10px "DM Mono";
+        color: #d7ffff;
+        margin: 7px 0;
+      }
+      .uds-message p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 1.5;
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 760px) {
+        .gateway-points,
+        .architecture-flow {
+          grid-template-columns: 1fr;
+        }
+        .gateway-point {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .gateway-point:last-child {
+          border-bottom: 0;
+        }
+        .architecture-arrow {
+          transform: rotate(90deg);
+        }
+      }
+      @media (max-width: 620px) {
+        .domain-toolbar {
+          align-items: stretch;
+        }
+        .scenario-switch,
+        .domain-controls {
+          display: grid;
+          width: 100%;
+        }
+        .scenario-switch {
+          grid-template-columns: 1fr 1fr;
+        }
+        .domain-controls {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .scenario-switch button,
+        .domain-controls button {
+          padding: 10px 7px;
+        }
+        .domain-topology .network-map {
+          height: 900px !important;
+        }
+        .domain-caption {
+          grid-template-columns: 1fr;
+          gap: 5px;
+        }
+        .lin-stage {
+          height: 330px;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="readable.css" />
+  </head>
+  <body class="network-page">
+    <div class="shell">
+      <aside class="side">
+        <div class="brand">
+          <div class="brand-mark"><img src="assets/tesla-logo-mark.png" alt="Tesla" /></div>
+          <div><strong>VECTRA</strong><small>VEHICLE SUPPORT LAB</small></div>
+        </div>
+        <div class="side-label">LEARNING MAP</div>
+        <nav class="nav">
+          <a href="index.html"><b>00</b><span>学习总览</span></a
+          ><a class="active" href="network.html"
+            ><b>01</b><span>车载网络</span></a
+          ><a href="circuits.html"><b>02</b><span>低压电气</span></a
+          ><a href="systems.html"><b>03</b><span>机电系统</span></a
+          ><a href="software.html"><b>04</b><span>软件与刷写</span></a
+          ><a href="diagnosis.html"><b>05</b><span>诊断方法</span></a>
+        </nav>
+        <div class="side-foot"><i></i>CAN · LIN · UDS</div>
+      </aside>
+      <main class="main">
+        <header class="page-head">
+          <div>
+            <div class="eyebrow">01 / VEHICLE NETWORK</div>
+            <h1>车载网络</h1>
+            <p>
+              先看网络拓扑，再分别进入 CAN、LIN 和
+              UDS。通信故障诊断必须同时考虑供电、线束、物理层和报文层。
+            </p>
+          </div>
+          <a class="back" href="index.html">← 返回总览</a>
+        </header>
+        <section class="panel can-entry">
+          <div class="can-entry-main">
+            <span class="tag">核心重点 · CAN / CAN-FD</span>
+            <h2>CAN 总线动画实验室</h2>
+            <p>
+              完整保留差分电平、120Ω 终端电阻、逐位仲裁、11/29 位
+              ID、完整报文帧、CAN 矩阵和故障动画。
+            </p>
+            <div class="can-topics">
+              <span class="tag">CAN 2.0A/B</span><span class="tag">CAN-FD</span
+              ><span class="tag">帧结构</span><span class="tag">ID / IDE</span
+              ><span class="tag">位仲裁</span>
+            </div>
+            <a
+              class="action"
+              style="display: inline-block; margin-top: 22px"
+              href="can.html"
+              >打开完整 CAN 动画实验室 →</a
+            >
+          </div>
+          <div class="can-entry-visual">
+            <div class="can-wire">
+              <span class="h">CAN-H · 3.5 V</span
+              ><span class="l">CAN-L · 1.5 V</span><i></i><i></i><i></i>
+            </div>
+            <strong>显性 0 覆盖隐性 1</strong
+            ><small>多个节点并联，共享同一差分总线</small>
+          </div>
+        </section>
+        <section class="panel domain-topology">
+          <div class="panel-head">
+            <h2>整车域 CAN 网络拓扑动画</h2>
+            <small>四条独立总线 · 中央网关 · 选择性转发</small>
+          </div>
+          <div class="domain-toolbar">
+            <div class="scenario-switch" aria-label="拓扑动画场景">
+              <button class="active" data-domain-mode="route">
+                刹车报文转发
+              </button>
+              <button data-domain-mode="fault">娱乐域故障隔离</button>
+            </div>
+            <div class="domain-controls">
+              <button id="domainReset">重置</button>
+              <button id="domainStep">单步</button>
+              <button id="domainPlay">播放</button>
+            </div>
+          </div>
+          <div class="network-map">
+            <canvas
+              id="topologyCanvas"
+              role="img"
+              aria-label="四个独立 CAN 网段通过中央网关连接的动画"
+            ></canvas>
+          </div>
+          <div class="domain-caption" aria-live="polite">
+            <b id="domainStepNo">步骤 00</b>
+            <span id="domainCaption"
+              >四个功能域分别使用独立 CAN 总线，每条总线都有自己的两只 120Ω
+              终端电阻。</span
+            >
+          </div>
+          <div class="gateway-points">
+            <div class="gateway-point">
+              <b>① 物理独立</b>
+              <p>底盘、动力、车身、娱乐各自成网，每条 CAN 总线独立终端匹配。</p>
+            </div>
+            <div class="gateway-point">
+              <b>② 网关治理</b>
+              <p>网关负责报文转发、协议转换与故障隔离，不让单域故障扩散。</p>
+            </div>
+            <div class="gateway-point">
+              <b>③ 按需转发</b>
+              <p>网关依据路由表只转发业务需要的信号，不会无脑复制全部报文。</p>
+            </div>
+          </div>
+          <div class="domain-architecture">
+            <h3>域控制器架构</h3>
+            <div class="architecture-flow">
+              <div class="architecture-node">
+                <strong>底盘域控制器</strong>
+                <span
+                  >域内 ECU 与传感器使用 CAN-FD，域控制器汇聚本域信号。</span
+                >
+              </div>
+              <div class="architecture-arrow">⇄</div>
+              <div class="architecture-node backbone">
+                <strong>车载以太网骨干</strong>
+                <span
+                  >域间使用更高带宽的以太网传输，承载跨域数据与诊断通信。</span
+                >
+              </div>
+              <div class="architecture-arrow">⇄</div>
+              <div class="architecture-node">
+                <strong>车身域控制器</strong>
+                <span
+                  >集成网关与本域控制功能，再向域内 CAN-FD 节点分发信号。</span
+                >
+              </div>
+            </div>
+            <p class="architecture-note">
+              域控制器把传统中央网关的一部分路由、诊断和控制能力下沉到各功能域；实际车型会因平台与年代不同采用不同组合。
+            </p>
+          </div>
+        </section>
+        <section class="panel uds-lab" id="udsLab">
+          <div class="panel-head">
+            <h2>UDS 诊断服务：CAN 负责运输，UDS 负责业务</h2>
+            <small>ISO 14229 · ISO-TP · CAN</small>
+          </div>
+          <div class="uds-layer-intro">
+            <div class="layer-card">
+              <small>底层运输</small>
+              <h3>CAN 总线层</h3>
+              <p>
+                负责仲裁 ID、总线优先级、差分电平和帧传输。CAN
+                不理解“读故障码”或“刷写固件”的业务含义。
+              </p>
+            </div>
+            <div class="layer-arrow">→</div>
+            <div class="layer-card">
+              <small>应用层业务</small>
+              <h3>UDS 诊断层</h3>
+              <p>
+                服务码放在 CAN
+                数据段内，定义切换会话、读取数据、读取故障码、安全访问和软件下载等诊断动作。
+              </p>
+            </div>
+          </div>
+          <div class="diagnostic-frame">
+            <h3>示例诊断帧：广播请求进入编程会话</h3>
+            <div class="frame-parts">
+              <div class="frame-part can-id">
+                <small>CAN 仲裁 ID</small><strong>0x7DF</strong
+                ><span>诊断广播请求 ID</span>
+              </div>
+              <div class="frame-part">
+                <small>ISO-TP 长度</small><strong>0x03</strong
+                ><span>后续 3 字节有效</span>
+              </div>
+              <div class="frame-part service">
+                <small>UDS 服务码</small><strong>0x10</strong
+                ><span>切换诊断会话</span>
+              </div>
+              <div class="frame-part">
+                <small>子功能</small><strong>0x02</strong><span>编程会话</span>
+              </div>
+              <div class="frame-part">
+                <small>示例参数</small><strong>0x01</strong
+                ><span>教学数据字节</span>
+              </div>
+            </div>
+            <div class="frame-brace">
+              <div class="can">CAN 层：ID 负责路由与优先级</div>
+              <div class="uds">数据段：ISO-TP 承载 UDS 业务数据</div>
+            </div>
+            <div class="envelope-note">
+              <div class="address">
+                <b>CAN-ID 像信封上的投递标记：</b
+                >告诉总线这是什么报文、优先级多高，以及接收节点是否关注。
+              </div>
+              <div class="business">
+                <b>UDS 服务码像信封里的业务指令：</b>0x10、0x22、0x27
+                等决定诊断工具要求 ECU 做什么。
+              </div>
+            </div>
+          </div>
+          <div class="uds-detail-grid">
+            <div class="uds-services">
+              <h3>常用 UDS 服务</h3>
+              <div class="service-list" id="serviceList">
+                <button class="service-item active" data-service="0">
+                  <code>0x10</code><strong>切换会话</strong></button
+                ><button class="service-item" data-service="1">
+                  <code>0x22</code><strong>读取 DID</strong></button
+                ><button class="service-item" data-service="2">
+                  <code>0x19</code><strong>读取 DTC</strong></button
+                ><button class="service-item" data-service="3">
+                  <code>0x27</code><strong>安全访问</strong></button
+                ><button class="service-item" data-service="4">
+                  <code>0x34 / 36 / 37</code><strong>固件刷写</strong>
+                </button>
+              </div>
+              <div class="service-explain" id="serviceExplain">
+                0x10 在默认、扩展和编程会话之间切换。不同会话开放不同诊断权限。
+              </div>
+            </div>
+            <div class="flash-demo">
+              <h3>固件刷写完整流程</h3>
+              <div class="flash-controls">
+                <button id="flashReset">重置</button
+                ><button id="flashStep">单步</button
+                ><button id="flashPlay">播放</button>
+              </div>
+              <div class="flash-track" id="flashTrack"></div>
+              <div class="flash-caption" id="flashCaption">
+                刷写前先验证 12V 供电、车辆状态、目标 ECU 和软件版本。
+              </div>
+            </div>
+          </div>
+        </section>
+        <div class="grid">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>LIN 主从调度动画</h2>
+              <div class="controls">
+                <button id="linReset">重置</button
+                ><button id="linStep">单步</button
+                ><button id="linPlay">播放</button>
+              </div>
+            </div>
+            <div class="lin-stage"><canvas id="linCanvas"></canvas></div>
+            <div class="caption">
+              <b id="linStepNo">00</b
+              ><span id="linCaption"
+                >主节点维护调度表。LIN 是单线、主从式网络，不进行 CAN
+                式位仲裁。</span
+              >
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>UDS 诊断路径</h2>
+              <small>ISO 14229</small>
+            </div>
+            <div class="uds-body">
+              <div class="uds-flow" id="udsFlow"></div>
+              <div class="uds-message">
+                <small id="udsLabel">DIAGNOSTIC SESSION</small
+                ><strong id="udsRequest">10 03 → 50 03</strong>
+                <p id="udsExplain">
+                  进入扩展诊断会话后，才能执行受保护的诊断或刷写操作。
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script>
+      const $ = (s) => document.querySelector(s);
+      function setup(c) {
+        const d = devicePixelRatio || 1,
+          w = c.clientWidth,
+          h = c.clientHeight;
+        c.width = w * d;
+        c.height = h * d;
+        const x = c.getContext("2d");
+        x.setTransform(d, 0, 0, d, 0, 0);
+        return { x, w, h };
+      }
+      function box(x, cx, cy, w, h, title, sub, color) {
+        x.fillStyle = "#111920";
+        x.strokeStyle = color;
+        x.lineWidth = 1.3;
+        x.fillRect(cx - w / 2, cy - h / 2, w, h);
+        x.strokeRect(cx - w / 2, cy - h / 2, w, h);
+        x.fillStyle = "#edf1f2";
+        x.textAlign = "center";
+        x.font = "600 14px Manrope";
+        x.fillText(title, cx, cy - 2);
+        x.fillStyle = "#71808a";
+        x.font = "10px DM Mono";
+        x.fillText(sub, cx, cy + 15);
+      }
+      const domainScenes = {
+        route: [
+          "四个功能域分别使用独立 CAN 总线，每条总线都有自己的两只 120Ω 终端电阻。",
+          "iBooster 在底盘域 CAN 上发送刹车状态报文 0x180，底盘域节点可直接接收。",
+          "网关收到 0x180 后查询路由表：仪表需要制动状态，因此允许跨域转发。",
+          "网关在车身域 CAN 上重新发送目标信号，其他无业务需求的域不会收到该报文。",
+          "仪表接收转发后的制动状态并更新制动指示，完整跨域链路结束。",
+        ],
+        fault: [
+          "四条 CAN 总线在物理上相互独立，娱乐域异常不会直接改变其他域的电气状态。",
+          "娱乐主机节点异常，持续发送错误或异常频率报文，娱乐域通信质量下降。",
+          "网关检测到娱乐域接口异常并阻断其跨域转发，故障被限制在娱乐域。",
+          "底盘域刹车报文和动力域扭矩报文继续正常通信，不受娱乐域故障影响。",
+          "诊断结果：娱乐功能可能离线，但制动与动力关键通信保持可用。",
+        ],
+      };
+      const domainState = { mode: "route", step: 0, timer: null };
+      function drawDomainNode(x, cx, cy, width, title, sub, color, active) {
+        x.fillStyle = active ? "#172c2f" : "#111920";
+        x.strokeStyle = active ? color : "#3a4851";
+        x.lineWidth = active ? 2 : 1;
+        x.fillRect(cx - width / 2, cy - 25, width, 50);
+        x.strokeRect(cx - width / 2, cy - 25, width, 50);
+        x.textAlign = "center";
+        x.fillStyle = "#edf1f2";
+        x.font = "600 13px Manrope";
+        x.fillText(title, cx, cy - 3);
+        x.fillStyle = "#829099";
+        x.font = "10px DM Mono";
+        x.fillText(sub, cx, cy + 14);
+      }
+      function drawTerminator(x, px, py) {
+        x.strokeStyle = "#e6c06b";
+        x.lineWidth = 2;
+        x.beginPath();
+        x.moveTo(px, py - 13);
+        x.lineTo(px, py + 13);
+        x.stroke();
+        x.fillStyle = "#e6c06b";
+        x.textAlign = "center";
+        x.font = "10px DM Mono";
+        x.fillText("120Ω", px, py + 29);
+      }
+      function drawPacket(x, points, progress, color, label) {
+        const lengths = [];
+        let total = 0;
+        for (let i = 1; i < points.length; i++) {
+          const length = Math.hypot(
+            points[i].x - points[i - 1].x,
+            points[i].y - points[i - 1].y,
+          );
+          lengths.push(length);
+          total += length;
+        }
+        let target = total * progress;
+        let px = points[0].x;
+        let py = points[0].y;
+        for (let i = 0; i < lengths.length; i++) {
+          if (target <= lengths[i]) {
+            const ratio = lengths[i] ? target / lengths[i] : 0;
+            px = points[i].x + (points[i + 1].x - points[i].x) * ratio;
+            py = points[i].y + (points[i + 1].y - points[i].y) * ratio;
+            break;
+          }
+          target -= lengths[i];
+          px = points[i + 1].x;
+          py = points[i + 1].y;
+        }
+        x.fillStyle = color;
+        x.fillRect(px - 20, py - 11, 40, 22);
+        x.fillStyle = "#071013";
+        x.textAlign = "center";
+        x.font = "9px DM Mono";
+        x.fillText(label, px, py + 3);
+      }
+      function getDomainLayout(w, h) {
+        if (w < 600) {
+          const x1 = 28,
+            x2 = w - 28,
+            tap = w / 2;
+          return {
+            mobile: true,
+            gateway: { x: w / 2, y: h / 2, w: 150, h: 92 },
+            buses: [
+              { id: "chassis", name: "底盘域 CAN", y: 105, x1, x2, tap },
+              { id: "power", name: "动力域 CAN", y: 300, x1, x2, tap },
+              { id: "body", name: "车身域 CAN", y: 600, x1, x2, tap },
+              { id: "infotainment", name: "娱乐域 CAN", y: 795, x1, x2, tap },
+            ],
+          };
+        }
+        return {
+          mobile: false,
+          gateway: { x: w / 2, y: h / 2, w: 170, h: 130 },
+          buses: [
+            {
+              id: "chassis",
+              name: "底盘域 CAN",
+              y: 130,
+              x1: 55,
+              x2: w * 0.4,
+              tap: w * 0.36,
+            },
+            {
+              id: "power",
+              name: "动力域 CAN",
+              y: h - 130,
+              x1: 55,
+              x2: w * 0.4,
+              tap: w * 0.36,
+            },
+            {
+              id: "body",
+              name: "车身域 CAN",
+              y: 130,
+              x1: w * 0.6,
+              x2: w - 55,
+              tap: w * 0.64,
+            },
+            {
+              id: "infotainment",
+              name: "娱乐域 CAN",
+              y: h - 130,
+              x1: w * 0.6,
+              x2: w - 55,
+              tap: w * 0.64,
+            },
+          ],
+        };
+      }
+      function topology(t = 0) {
+        const c = $("#topologyCanvas"),
+          { x, w, h } = setup(c),
+          layout = getDomainLayout(w, h),
+          gw = layout.gateway,
+          busById = Object.fromEntries(
+            layout.buses.map((bus) => [bus.id, bus]),
+          );
+        x.fillStyle = "#090e12";
+        x.fillRect(0, 0, w, h);
+        const colors = {
+          chassis: "#ff6969",
+          power: "#ff9c5b",
+          body: "#58d1d4",
+          infotainment: "#b79cff",
+        };
+        const names = {
+          chassis: ["iBooster", "ESP"],
+          power: ["BMS", "MCU"],
+          body: ["BCM", "仪表"],
+          infotainment: ["娱乐主机", "T-BOX"],
+        };
+        layout.buses.forEach((bus) => {
+          const isFault =
+            domainState.mode === "fault" &&
+            bus.id === "infotainment" &&
+            domainState.step >= 1;
+          x.strokeStyle = isFault ? "#ff6969" : colors[bus.id];
+          x.lineWidth = 3;
+          x.beginPath();
+          x.moveTo(bus.x1, bus.y);
+          x.lineTo(bus.x2, bus.y);
+          x.stroke();
+          drawTerminator(x, bus.x1, bus.y);
+          drawTerminator(x, bus.x2, bus.y);
+          const upperBus = bus.y < h / 2;
+          const labelY = layout.mobile
+            ? bus.y - 48
+            : bus.y + (upperBus ? -48 : 60);
+          x.fillStyle = isFault ? "#ff8f8f" : colors[bus.id];
+          x.textAlign = "center";
+          x.font = "600 14px Manrope";
+          x.fillText(bus.name, (bus.x1 + bus.x2) / 2, labelY);
+          x.fillStyle = "#65727b";
+          x.font = "10px DM Mono";
+          x.fillText(
+            "物理独立 · 双端 120Ω",
+            (bus.x1 + bus.x2) / 2,
+            labelY + 19,
+          );
+          const positions = [
+            bus.x1 + (bus.x2 - bus.x1) * 0.3,
+            bus.x1 + (bus.x2 - bus.x1) * 0.7,
+          ];
+          const nodeY = layout.mobile
+            ? bus.y + 48
+            : bus.y + (upperBus ? 58 : -58);
+          positions.forEach((nodeX, index) => {
+            x.strokeStyle = "#3b4a53";
+            x.lineWidth = 1;
+            x.beginPath();
+            x.moveTo(nodeX, bus.y);
+            x.lineTo(nodeX, nodeY + (nodeY < bus.y ? 25 : -25));
+            x.stroke();
+            const active =
+              (domainState.mode === "route" &&
+                ((bus.id === "chassis" &&
+                  index === 0 &&
+                  domainState.step >= 1) ||
+                  (bus.id === "body" &&
+                    index === 1 &&
+                    domainState.step >= 4))) ||
+              (domainState.mode === "fault" &&
+                bus.id === "infotainment" &&
+                index === 0 &&
+                domainState.step >= 1);
+            drawDomainNode(
+              x,
+              nodeX,
+              nodeY,
+              layout.mobile ? Math.min(92, (bus.x2 - bus.x1) * 0.38) : 112,
+              names[bus.id][index],
+              index === 0 ? "NODE A" : "NODE B",
+              isFault && index === 0 ? "#ff6969" : colors[bus.id],
+              active,
+            );
+          });
+          x.strokeStyle = "#46545d";
+          x.lineWidth = 2;
+          x.beginPath();
+          x.moveTo(bus.tap, bus.y);
+          if (layout.mobile) {
+            x.lineTo(bus.tap, gw.y + (bus.y < gw.y ? -gw.h / 2 : gw.h / 2));
+          } else {
+            const leftBus = bus.x2 < gw.x;
+            x.lineTo(leftBus ? gw.x - gw.w / 2 : gw.x + gw.w / 2, gw.y);
+          }
+          x.stroke();
+          x.fillStyle = colors[bus.id];
+          x.beginPath();
+          x.arc(bus.tap, bus.y, 5, 0, Math.PI * 2);
+          x.fill();
+        });
+        const gatewayActive = domainState.step >= 2;
+        x.fillStyle = gatewayActive ? "#183029" : "#111920";
+        x.strokeStyle = gatewayActive ? "#71d49a" : "#46545d";
+        x.lineWidth = gatewayActive ? 2 : 1.5;
+        x.fillRect(gw.x - gw.w / 2, gw.y - gw.h / 2, gw.w, gw.h);
+        x.strokeRect(gw.x - gw.w / 2, gw.y - gw.h / 2, gw.w, gw.h);
+        x.textAlign = "center";
+        x.fillStyle = "#edf1f2";
+        x.font = "600 16px Manrope";
+        x.fillText("中央网关 ECU", gw.x, gw.y - 17);
+        x.fillStyle = "#71d49a";
+        x.font = "10px DM Mono";
+        x.fillText("4 × CAN TRANSCEIVER", gw.x, gw.y + 4);
+        x.fillStyle = "#829099";
+        x.font = "11px Manrope";
+        x.fillText("路由 · 转换 · 隔离", gw.x, gw.y + 27);
+
+        const phase = (t % 1400) / 1400;
+        const chassis = busById.chassis;
+        const body = busById.body;
+        const info = busById.infotainment;
+        const chassisSource = {
+          x: chassis.x1 + (chassis.x2 - chassis.x1) * 0.3,
+          y: chassis.y,
+        };
+        const bodyTarget = {
+          x: body.x1 + (body.x2 - body.x1) * 0.7,
+          y: body.y,
+        };
+        if (domainState.mode === "route") {
+          if (domainState.step === 1) {
+            drawPacket(
+              x,
+              [chassisSource, { x: chassis.tap, y: chassis.y }],
+              phase,
+              "#ff6969",
+              "0x180",
+            );
+          }
+          if (domainState.step === 2) {
+            drawPacket(x, [{ x: gw.x, y: gw.y }], 1, "#71d49a", "ROUTE");
+          }
+          if (domainState.step >= 3) {
+            const start = { x: gw.x, y: gw.y };
+            drawPacket(
+              x,
+              [start, { x: body.tap, y: body.y }, bodyTarget],
+              domainState.step === 3 ? phase : 1,
+              "#58d1d4",
+              "BRAKE",
+            );
+          }
+        } else if (domainState.step >= 1) {
+          const faultSource = {
+            x: info.x1 + (info.x2 - info.x1) * 0.3,
+            y: info.y,
+          };
+          drawPacket(
+            x,
+            [faultSource, { x: info.tap, y: info.y }],
+            phase,
+            "#ff6969",
+            "ERROR",
+          );
+          if (domainState.step >= 2) {
+            const blockX = layout.mobile ? info.tap : (info.tap + gw.x) / 2;
+            const blockY = layout.mobile
+              ? (info.y + gw.y + gw.h / 2) / 2
+              : gw.y;
+            x.strokeStyle = "#ff6969";
+            x.lineWidth = 4;
+            x.beginPath();
+            x.moveTo(blockX - 12, blockY - 12);
+            x.lineTo(blockX + 12, blockY + 12);
+            x.moveTo(blockX + 12, blockY - 12);
+            x.lineTo(blockX - 12, blockY + 12);
+            x.stroke();
+          }
+          if (domainState.step >= 3) {
+            const power = busById.power;
+            drawPacket(
+              x,
+              [
+                { x: power.x1 + 18, y: power.y },
+                { x: power.x2 - 18, y: power.y },
+              ],
+              phase,
+              "#71d49a",
+              "OK",
+            );
+            drawPacket(
+              x,
+              [
+                { x: chassis.x1 + 18, y: chassis.y },
+                { x: chassis.x2 - 18, y: chassis.y },
+              ],
+              (phase + 0.45) % 1,
+              "#71d49a",
+              "OK",
+            );
+          }
+        }
+        requestAnimationFrame(topology);
+      }
+      function renderDomainState() {
+        document.querySelectorAll("[data-domain-mode]").forEach((button) => {
+          button.classList.toggle(
+            "active",
+            button.dataset.domainMode === domainState.mode,
+          );
+        });
+        $("#domainStepNo").textContent =
+          `步骤 ${String(domainState.step).padStart(2, "0")}`;
+        $("#domainCaption").textContent =
+          domainScenes[domainState.mode][domainState.step];
+      }
+      function stopDomain() {
+        if (domainState.timer) clearInterval(domainState.timer);
+        domainState.timer = null;
+        $("#domainPlay").classList.remove("active");
+        $("#domainPlay").textContent = "播放";
+      }
+      function nextDomain() {
+        domainState.step =
+          (domainState.step + 1) % domainScenes[domainState.mode].length;
+        renderDomainState();
+      }
+      document.querySelectorAll("[data-domain-mode]").forEach((button) => {
+        button.onclick = () => {
+          stopDomain();
+          domainState.mode = button.dataset.domainMode;
+          domainState.step = 0;
+          renderDomainState();
+        };
+      });
+      $("#domainReset").onclick = () => {
+        stopDomain();
+        domainState.step = 0;
+        renderDomainState();
+      };
+      $("#domainStep").onclick = () => {
+        stopDomain();
+        nextDomain();
+      };
+      $("#domainPlay").onclick = () => {
+        if (domainState.timer) {
+          stopDomain();
+          return;
+        }
+        $("#domainPlay").classList.add("active");
+        $("#domainPlay").textContent = "暂停";
+        domainState.timer = setInterval(nextDomain, 1800);
+      };
+      const linScenes = [
+          {
+            m: "HEADER",
+            text: "主节点发送 Break、Sync 和 Identifier，宣布本时隙需要哪一个从节点响应。",
+          },
+          {
+            m: "S1",
+            text: "车窗从节点识别到自己的 ID，返回开关状态；其他从节点保持监听。",
+          },
+          {
+            m: "S2",
+            text: "下一调度时隙由门锁从节点响应。通信顺序由主节点调度表决定。",
+          },
+          {
+            m: "MISS",
+            text: "雨刮从节点没有响应，主节点等待超时并记录响应丢失故障。",
+          },
+        ],
+        lin = { i: 0, timer: null };
+      function drawLin() {
+        const c = $("#linCanvas"),
+          { x, w, h } = setup(c),
+          y = h * 0.5,
+          scene = linScenes[lin.i],
+          nodes = [
+            ["LIN MASTER", "BCM"],
+            ["SLAVE 1", "车窗"],
+            ["SLAVE 2", "门锁"],
+            ["SLAVE 3", "雨刮"],
+          ];
+        x.fillStyle = "#090e12";
+        x.fillRect(0, 0, w, h);
+        x.strokeStyle = "#58d1d4";
+        x.lineWidth = 2;
+        x.beginPath();
+        x.moveTo(40, y);
+        x.lineTo(w - 35, y);
+        x.stroke();
+        nodes.forEach((n, i) => {
+          const px = 55 + (i * (w - 110)) / 3,
+            py = i % 2 ? y + 85 : y - 85;
+          box(
+            x,
+            px,
+            py,
+            Math.min(95, w * 0.22),
+            48,
+            n[0],
+            n[1],
+            i === 0 ? "#58d1d4" : "#3e4c55",
+          );
+          x.strokeStyle = "#3b4a53";
+          x.beginPath();
+          x.moveTo(px, py + (py < y ? 24 : -24));
+          x.lineTo(px, y);
+          x.stroke();
+        });
+        let target = lin.i === 0 ? 1 : lin.i === 1 ? 1 : lin.i === 2 ? 2 : 3,
+          tx = 55 + (target * (w - 110)) / 3,
+          p = (Date.now() % 900) / 900,
+          px = 55 + (tx - 55) * p;
+        x.fillStyle = scene.m === "MISS" ? "#ff6969" : "#58d1d4";
+        x.fillRect(px - 18, y - 10, 36, 20);
+        x.fillStyle = "#071013";
+        x.textAlign = "center";
+        x.font = "9px DM Mono";
+        x.fillText(scene.m, px, y + 3);
+      }
+      function showLin(i) {
+        lin.i = (i + linScenes.length) % linScenes.length;
+        $("#linStepNo").textContent = String(lin.i).padStart(2, "0");
+        $("#linCaption").textContent = linScenes[lin.i].text;
+        drawLin();
+      }
+      function stopLin() {
+        if (lin.timer) clearInterval(lin.timer);
+        lin.timer = null;
+        $("#linPlay").classList.remove("active");
+        $("#linPlay").textContent = "播放";
+      }
+      $("#linReset").onclick = () => {
+        stopLin();
+        showLin(0);
+      };
+      $("#linStep").onclick = () => {
+        stopLin();
+        showLin(lin.i + 1);
+      };
+      $("#linPlay").onclick = () => {
+        if (lin.timer) {
+          stopLin();
+          return;
+        }
+        $("#linPlay").classList.add("active");
+        $("#linPlay").textContent = "暂停";
+        lin.timer = setInterval(() => showLin(lin.i + 1), 1600);
+      };
+      const uds = [
+        [
+          "0x10",
+          "诊断会话",
+          "10 03 → 50 03",
+          "进入扩展诊断会话后，才能执行受保护的诊断或刷写操作。",
+        ],
+        [
+          "0x19",
+          "读取 DTC",
+          "19 02 FF → 59 02 ...",
+          "读取当前、历史或测试未完成等不同状态的故障码。",
+        ],
+        [
+          "0x22",
+          "读取数据",
+          "22 F1 90 → 62 F1 90 ...",
+          "通过 DID 读取软件版本、电压、温度和运行状态。",
+        ],
+        [
+          "0x14",
+          "清除 DTC",
+          "14 FF FF FF → 54",
+          "清除后必须复测；如果根因仍存在，DTC 会重新出现。",
+        ],
+        [
+          "0x34",
+          "请求下载",
+          "34 ... → 74 ...",
+          "刷写前建立下载参数，之后用 0x36 分块传输并用 0x37 结束。",
+        ],
+      ];
+      $("#udsFlow").innerHTML = uds
+        .map(
+          (u, i) =>
+            `<button class="uds-step ${i === 0 ? "active" : ""}" data-uds="${i}"><code>${u[0]}</code><strong>${u[1]}</strong><i></i></button>`,
+        )
+        .join("");
+      document.querySelectorAll("[data-uds]").forEach(
+        (b) =>
+          (b.onclick = () => {
+            document
+              .querySelectorAll("[data-uds]")
+              .forEach((x) => x.classList.remove("active"));
+            b.classList.add("active");
+            const u = uds[+b.dataset.uds];
+            $("#udsLabel").textContent = u[1];
+            $("#udsRequest").textContent = u[2];
+            $("#udsExplain").textContent = u[3];
+          }),
+      );
+      const serviceDetails = [
+        "0x10 在默认、扩展和编程会话之间切换。不同会话开放不同诊断权限。",
+        "0x22 按 DID 读取 ECU 数据，例如软件版本、电压、温度和标定信息。",
+        "0x19 按状态掩码读取当前、历史或测试未完成的 DTC，不等于直接更换报码模块。",
+        "0x27 通过 Seed / Key 完成安全访问，解锁刷写或受保护操作；安全算法由厂商定义。",
+        "0x34 建立下载参数，0x36 按序号传输数据块，0x37 通知传输结束，之后仍需完整性校验和重启验证。",
+      ];
+      document.querySelectorAll("[data-service]").forEach(
+        (b) =>
+          (b.onclick = () => {
+            document
+              .querySelectorAll("[data-service]")
+              .forEach((x) => x.classList.remove("active"));
+            b.classList.add("active");
+            $("#serviceExplain").textContent =
+              serviceDetails[+b.dataset.service];
+          }),
+      );
+      const flashSteps = [
+        ["准备检查", "12V 稳定、车辆静止"],
+        ["0x10", "进入编程会话"],
+        ["0x27", "完成安全访问"],
+        ["0x34", "请求软件下载"],
+        ["0x36", "分块传输固件"],
+        ["0x37", "结束数据传输"],
+        ["校验与重启", "验证版本、DTC、数据流"],
+      ];
+      let flashIndex = 0,
+        flashTimer = null;
+      function renderFlash() {
+        $("#flashTrack").innerHTML = flashSteps
+          .map(
+            (s, i) =>
+              `<div class="flash-step ${i < flashIndex ? "done " : ""}${i === flashIndex ? "active" : ""}"><b>${String(i + 1).padStart(2, "0")}</b><strong>${s[0]}</strong><span>${s[1]}</span></div>`,
+          )
+          .join("");
+        const captions = [
+          "刷写前先验证 12V 供电、车辆状态、目标 ECU 和软件版本。",
+          "切换到编程会话，ECU 开放软件下载所需的诊断能力。",
+          "通过安全访问确认诊断工具获得了受保护操作权限。",
+          "ECU 接收下载地址、数据长度和传输参数，准备非易失存储区。",
+          "诊断工具按块序号发送固件；中断时需要识别最后成功的数据块。",
+          "所有数据块发送完成，但此时还不能直接认为刷写成功。",
+          "执行哈希或签名校验、例程控制和 ECU 重启；最后读取版本、DTC 与关键数据确认功能。",
+        ];
+        $("#flashCaption").textContent = captions[flashIndex];
+      }
+      function stopFlash() {
+        if (flashTimer) clearInterval(flashTimer);
+        flashTimer = null;
+        $("#flashPlay").classList.remove("active");
+        $("#flashPlay").textContent = "播放";
+      }
+      function nextFlash() {
+        flashIndex = (flashIndex + 1) % flashSteps.length;
+        renderFlash();
+      }
+      $("#flashReset").onclick = () => {
+        stopFlash();
+        flashIndex = 0;
+        renderFlash();
+      };
+      $("#flashStep").onclick = () => {
+        stopFlash();
+        nextFlash();
+      };
+      $("#flashPlay").onclick = () => {
+        if (flashTimer) {
+          stopFlash();
+          return;
+        }
+        $("#flashPlay").classList.add("active");
+        $("#flashPlay").textContent = "暂停";
+        flashTimer = setInterval(nextFlash, 1700);
+      };
+      renderFlash();
+      renderDomainState();
+      topology();
+      showLin(0);
+      setInterval(drawLin, 90);
+    </script>
+  </body>
+</html>
