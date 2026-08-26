@@ -1,4 +1,5 @@
 work/
 outputs/
+.wrangler/
 *.log
 node_modules/
