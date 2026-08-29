@@ -191,6 +191,34 @@ nav button {
   line-height: 1.35;
 }
 
+/* Firmware flow controls: keep native buttons inside the dark lab theme. */
+.flash-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.flash-controls button {
+  min-width: 76px;
+  border: 1px solid var(--line) !important;
+  background: #0d1318 !important;
+  color: #b8c3c8 !important;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+.flash-controls button:hover,
+.flash-controls button:focus-visible {
+  border-color: var(--cyan) !important;
+  color: var(--text) !important;
+  outline: none;
+}
+.flash-controls button.active {
+  border-color: #47777a !important;
+  background: #173034 !important;
+  color: #d7ffff !important;
+}
+
 .icon-btn,
 .module .open {
   width: var(--ui-control) !important;

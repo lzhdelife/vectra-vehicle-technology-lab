@@ -127,7 +127,7 @@
         inset: 0;
         background: linear-gradient(90deg, transparent 49.9%, #1b272d 50%, transparent 50.1%), linear-gradient(#111b20 1px, transparent 1px);
         background-size: 100% 100%, 100% 56px;
-        opacity: 0.45;
+        opacity: 0.28;
         content: "";
       }
       .vehicle-overview-head {
@@ -164,17 +164,20 @@
         min-height: 330px;
         padding: 10px 24px 24px;
       }
+      .vehicle-view-tabs { position: relative; z-index: 3; display: flex; gap: 5px; padding: 12px 24px 0; }
+      .vehicle-view-tab { border: 1px solid #2d454c; background: #0d151a; color: #8fa2a9; padding: 7px 11px; font: 9px "DM Mono"; cursor: pointer; }
+      .vehicle-view-tab.active { border-color: var(--cyan); background: #173235; color: #d9ffff; }
       .vehicle-visual::before {
         position: absolute;
         inset: 10px 24px 24px;
-        background: repeating-linear-gradient(90deg, transparent 0, transparent 84px, rgba(88, 209, 212, 0.08) 85px), repeating-linear-gradient(0deg, transparent 0, transparent 42px, rgba(88, 209, 212, 0.07) 43px);
+        background: repeating-linear-gradient(90deg, transparent 0, transparent 84px, rgba(88, 209, 212, 0.1) 85px), repeating-linear-gradient(0deg, transparent 0, transparent 42px, rgba(88, 209, 212, 0.08) 43px);
         pointer-events: none;
         content: "";
       }
       .vehicle-visual::after {
         position: absolute;
         inset: 10px 24px 24px;
-        background: linear-gradient(90deg, rgba(9, 14, 18, 0.72), transparent 22%, transparent 78%, rgba(9, 14, 18, 0.76)), linear-gradient(0deg, rgba(9, 14, 18, 0.58), transparent 42%, rgba(9, 14, 18, 0.24));
+        background: linear-gradient(90deg, rgba(9, 14, 18, 0.28), transparent 18%, transparent 82%, rgba(9, 14, 18, 0.34)), linear-gradient(0deg, rgba(9, 14, 18, 0.24), transparent 42%, rgba(9, 14, 18, 0.08));
         pointer-events: none;
         content: "";
       }
@@ -188,12 +191,96 @@
         display: block;
         width: min(920px, 92%);
         height: 285px;
-        object-fit: cover;
-        object-position: center 58%;
-        filter: brightness(0.58) saturate(0.86) contrast(1.2);
-        opacity: 0.88;
-        border: 1px solid rgba(88, 209, 212, 0.45);
-        box-shadow: 0 0 0 1px rgba(88, 209, 212, 0.08), 0 20px 48px rgba(0, 0, 0, 0.36);
+        object-fit: contain;
+        object-position: center;
+        background: #05090d;
+        filter: brightness(1.22) saturate(0.92) contrast(1.08);
+        opacity: 0.98;
+        border: 0;
+        box-shadow: none;
+      }
+      .vehicle-photo[hidden] { display: none; }
+      .vehicle-3d {
+        display: block;
+        width: min(920px, 92%);
+        height: 285px;
+        background: #05090d;
+        border: 0;
+        box-shadow: none;
+      }
+      .vehicle-3d[hidden] { display: none; }
+      .vehicle-3d-status { position: absolute; left: 34px; bottom: 32px; z-index: 2; padding: 7px 9px; background: rgba(9,14,18,.82); color: #aebbc0; font: 9px "DM Mono"; }
+      /* Legacy hotspot styles retained for compatibility with older saved layouts. */
+      .vehicle-hotspot {
+        position: absolute;
+        z-index: 3;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--cyan);
+        background: rgba(8, 16, 20, 0.9);
+        color: var(--cyan);
+        cursor: pointer;
+        font: 500 11px "DM Mono";
+        box-shadow: 0 0 0 5px rgba(88, 209, 212, 0.08);
+      }
+      .vehicle-hotspot::after {
+        position: absolute;
+        inset: -8px;
+        border: 1px solid rgba(88, 209, 212, 0.22);
+        content: "";
+        animation: hotspotPulse 2.4s ease-out infinite;
+      }
+      .vehicle-hotspot:hover,
+      .vehicle-hotspot.active {
+        background: var(--cyan);
+        color: #071013;
+      }
+      .vehicle-hotspot[data-system="electrical"] { left: 36%; top: 52%; }
+      .vehicle-hotspot[data-system="battery"] { left: 47%; top: 70%; }
+      .vehicle-hotspot[data-system="thermal"] { left: 55%; top: 49%; }
+      .vehicle-hotspot[data-system="drive"] { left: 69%; top: 63%; }
+      .vehicle-hotspot[data-system="brake"] { left: 67%; top: 72%; }
+      .vehicle-hotspot[data-system="charge"] { left: 65%; top: 42%; }
+      .vehicle-hotspot[data-system="service"] { left: 49%; top: 31%; }
+      .vehicle-system-detail {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 90px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 18px;
+        min-height: 108px;
+        padding: 18px 24px;
+        border-top: 1px solid var(--line);
+        background: #0d1318;
+      }
+      .vehicle-system-code {
+        color: var(--cyan);
+        font: 500 18px "DM Mono";
+      }
+      .vehicle-system-copy strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 17px;
+      }
+      .vehicle-system-copy p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .vehicle-system-link {
+        min-height: 42px;
+        padding: 10px 14px;
+        border: 1px solid #3f686b;
+        color: #d9ffff;
+        background: #173034;
+        font-size: 13px;
+      }
+      .model-credit { position: relative; z-index: 2; padding: 8px 24px; border-top: 1px solid #202a31; color: #66747d; background: #0a1014; font-size: 8px; }
+      .model-credit a { color: #8ebfc1; text-decoration: underline; text-underline-offset: 2px; }
+      @keyframes hotspotPulse {
+        from { opacity: 0.8; transform: scale(0.7); }
+        to { opacity: 0; transform: scale(1.35); }
       }
       .vehicle-visual .car-shell { fill: #121c22; stroke: #58d1d4; stroke-width: 2; }
       .vehicle-visual .car-window { fill: #1c3036; stroke: #71868c; stroke-width: 1.5; }
@@ -235,15 +322,33 @@
           min-height: 340px;
           padding: 0 6px 18px;
         }
+        .vehicle-view-tabs { padding: 12px 12px 0; }
         .vehicle-visual svg {
           width: 145%;
           max-width: none;
         }
         .vehicle-photo {
-          width: 112%;
+          width: 100%;
           height: 245px;
-          object-position: center 58%;
+          object-fit: contain;
+          object-position: center;
         }
+        .vehicle-3d { width: 100%; height: 245px; }
+        .vehicle-3d-status { left: 12px; bottom: 22px; }
+        .vehicle-hotspot { width: 30px; height: 30px; }
+        .vehicle-hotspot[data-system="electrical"] { left: 27%; top: 51%; }
+        .vehicle-hotspot[data-system="battery"] { left: 43%; top: 69%; }
+        .vehicle-hotspot[data-system="thermal"] { left: 52%; top: 48%; }
+        .vehicle-hotspot[data-system="drive"] { left: 73%; top: 62%; }
+        .vehicle-hotspot[data-system="brake"] { left: 68%; top: 71%; }
+        .vehicle-hotspot[data-system="charge"] { left: 68%; top: 41%; }
+        .vehicle-hotspot[data-system="service"] { left: 46%; top: 30%; }
+        .vehicle-system-detail {
+          grid-template-columns: 68px minmax(0, 1fr);
+          padding: 16px;
+        }
+        .vehicle-system-link { grid-column: 1 / -1; text-align: center; }
+        .model-credit { padding: 8px 16px; line-height: 1.5; }
       }
     </style>
     <link rel="stylesheet" href="readable.css" />
@@ -298,10 +403,16 @@
               <h2 id="vehicleOverviewTitle">从一辆车开始理解整车系统</h2>
               <p>电池、低压电气、控制器、车载网络与诊断方法，都在同一张系统地图里。</p>
             </div>
-            <span class="vehicle-overview-status">READY · 5 个学习域</span>
+            <span class="vehicle-overview-status">READY · 7 个车辆系统</span>
+          </div>
+          <div class="vehicle-view-tabs" role="tablist" aria-label="车辆视觉模式">
+            <button class="vehicle-view-tab active" type="button" role="tab" aria-selected="true" data-view="3d">3D 模型</button>
+            <button class="vehicle-view-tab" type="button" role="tab" aria-selected="false" data-view="2d">2D 参考图</button>
           </div>
           <div class="vehicle-visual">
-            <img class="vehicle-photo" src="assets/tesla-model-3-reference.png" alt="Tesla Model 3 红色侧前方外观参考图" />
+            <img class="vehicle-photo" src="assets/tesla-home-technical.jpg" alt="特斯拉轿车线框技术示意图，展示车身轮廓、灯组、车轮和外部标记点" />
+            <canvas class="vehicle-3d" id="vehicle3d" aria-label="可旋转的 Tesla Model 3 三维模型" hidden></canvas>
+            <span class="vehicle-3d-status" id="vehicle3dStatus">2D 参考图 · 3D 模型待加载</span>
             <svg viewBox="0 0 900 320" role="img" aria-label="纯电动汽车系统总览：电池包、逆变器与电机、12V低压、CAN网关和诊断方法">
               <path class="car-line" d="M150 80 H55 V125 M750 80 H845 V125 M150 245 H55 V205 M750 245 H845 V205" />
               <path class="car-line" d="M390 58 V22 H300 M510 58 V22 H600" />
@@ -327,6 +438,15 @@
               <text x="578" y="18" class="car-label">软件与 OTA</text><text x="578" y="37" class="car-label-sub">UDS · 版本 · 安全部署</text>
             </svg>
           </div>
+          <div class="vehicle-system-detail" aria-live="polite">
+            <span class="vehicle-system-code" id="vehicleSystemCode">00 / 0005</span>
+            <div class="vehicle-system-copy">
+              <strong id="vehicleSystemName">维护模式与 Toolbox</strong>
+              <p id="vehicleSystemDesc">从维护模式、网关、DTC 和实时数据进入 Tesla 服务诊断流程。</p>
+            </div>
+            <a class="vehicle-system-link" id="vehicleSystemLink" href="software.html">进入学习模块 →</a>
+          </div>
+          <div class="model-credit">3D model: <a href="https://sketchfab.com/3d-models/tesla-2018-model-3-5ef9b845aaf44203b6d04e2c677e444f" target="_blank" rel="noopener">Tesla 2018 Model 3</a> by Ameer Studio, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.</div>
         </section>
         <section class="modules">
           <a class="module" href="network.html"
@@ -400,5 +520,119 @@
         </section>
       </main>
     </div>
+    <script type="module">
+      import * as THREE from "./assets/vendor/three/three.module.js";
+      import { GLTFLoader } from "./assets/vendor/three/GLTFLoader.js";
+      import { OrbitControls } from "./assets/vendor/three/OrbitControls.js";
+
+      const canvas = document.getElementById("vehicle3d");
+      const photo = document.querySelector(".vehicle-photo");
+      const status = document.getElementById("vehicle3dStatus");
+      const viewTabs = document.querySelectorAll(".vehicle-view-tab");
+      let modelLoaded = false;
+      function selectVehicleView(view) {
+        viewTabs.forEach((tab) => { const active = tab.dataset.view === view; tab.classList.toggle("active", active); tab.setAttribute("aria-selected", String(active)); });
+        const show3d = view === "3d" && modelLoaded;
+        canvas.hidden = !show3d;
+        photo.hidden = show3d;
+        status.hidden = view !== "3d";
+      }
+      viewTabs.forEach((tab) => tab.addEventListener("click", () => selectVehicleView(tab.dataset.view)));
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x05090d);
+      scene.fog = new THREE.Fog(0x05090d, 8, 18);
+
+      const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 100);
+      camera.position.set(6.6, 1.3, 5.8);
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      const controls = new OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+      controls.enablePan = false;
+      controls.minDistance = 4;
+      controls.maxDistance = 13;
+      controls.maxPolarAngle = Math.PI * 0.49;
+      controls.target.set(0, 0.72, 0);
+
+      scene.add(new THREE.HemisphereLight(0xb9f7f4, 0x101418, 2.1));
+      const keyLight = new THREE.DirectionalLight(0xffffff, 3.2);
+      keyLight.position.set(4, 7, 5);
+      keyLight.castShadow = true;
+      scene.add(keyLight);
+      const rimLight = new THREE.DirectionalLight(0x58d1d4, 3.4);
+      rimLight.position.set(-5, 3, -4);
+      scene.add(rimLight);
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(30, 30),
+        new THREE.MeshStandardMaterial({ color: 0x080d10, roughness: 0.9, metalness: 0.08 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+      const grid = new THREE.GridHelper(30, 30, 0x2e6e70, 0x183438);
+      grid.position.y = 0.002;
+      scene.add(grid);
+
+      function resizeVehicle3d() {
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        if (!width || !height) return;
+        renderer.setSize(width, height, false);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+      }
+
+      new GLTFLoader().load(
+        "./assets/models/tesla.glb",
+        (gltf) => {
+          const model = gltf.scene;
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+          const scale = 8.0 / Math.max(size.x, size.y, size.z);
+          model.scale.setScalar(scale);
+          model.rotation.y = Math.PI;
+          model.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+          model.traverse((object) => {
+            if (!object.isMesh) return;
+            object.castShadow = true;
+            object.receiveShadow = true;
+          });
+          scene.add(model);
+          modelLoaded = true;
+          selectVehicleView("3d");
+          status.textContent = "拖动旋转 · 滚轮缩放";
+          resizeVehicle3d();
+        },
+        undefined,
+        () => { status.textContent = "2D 参考图 · 3D 模型待加载"; }
+      );
+
+      const observer = new ResizeObserver(resizeVehicle3d);
+      observer.observe(canvas.parentElement);
+      function renderVehicle3d() {
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(renderVehicle3d);
+      }
+      renderVehicle3d();
+    </script>
+    <script>
+      const vehicleSystems = {
+        service: { code: "00 / 0005", name: "维护模式与 Toolbox", desc: "从维护模式、网关、DTC 和实时数据进入 Tesla 服务诊断流程。", href: "software.html" },
+        battery: { code: "16 / BATTERY", name: "高压电池系统", desc: "理解电池总成、冷却、电气部件、BMS 与高压接触器之间的依赖。", href: "circuits.html#hvTopology" },
+        electrical: { code: "17 / LV", name: "低压电气与 ECU", desc: "沿低压电池、保险丝、线束、搭铁和控制模块建立测量证据链。", href: "circuits.html" },
+        thermal: { code: "18 / THERMAL", name: "温度管理", desc: "把 HVAC、制冷剂、冷却液和热管理执行器作为一个耦合系统理解。", href: "systems.html" },
+        brake: { code: "33 / BRAKE", name: "制动与稳定控制", desc: "区分机械制动、液压回路、助力器、ABS 和控制信号故障。", href: "systems.html" },
+        drive: { code: "39 / 40", name: "前后驱动系统", desc: "从扭矩请求、逆变器、驱动电机和反馈信号理解动力执行链。", href: "systems.html" },
+        charge: { code: "44 / 50", name: "高压与充电", desc: "观察高压测试、线束、充电入口、OBC 与电池之间的能量路径。", href: "circuits.html#hvTopology" },
+      };
+    </script>
   </body>
 </html>

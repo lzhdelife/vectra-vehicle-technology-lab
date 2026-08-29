@@ -1260,11 +1260,152 @@
         border-color: #47777a;
         background: #193034;
       }
+      .lv-lab {
+        margin: 16px 0;
+      }
+      .lv-lab-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--line);
+      }
+      .lv-architecture,
+      .lv-faults {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .lv-architecture button,
+      .lv-faults button {
+        min-height: 42px;
+        padding: 9px 12px;
+        border: 1px solid var(--line);
+        background: #0d1318;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .lv-architecture button.active {
+        border-color: var(--cyan);
+        background: #173034;
+        color: var(--text);
+      }
+      .lv-faults button.active {
+        border-color: var(--red);
+        background: #281719;
+        color: #ffd8d8;
+      }
+      .lv-lab-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 310px;
+        min-height: 470px;
+      }
+      .lv-measure-stage {
+        position: relative;
+        min-height: 470px;
+        padding: 46px 34px 34px;
+        border-right: 1px solid var(--line);
+        background: #090e12;
+        overflow: hidden;
+      }
+      .lv-measure-stage::before {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(#172128 1px, transparent 1px), linear-gradient(90deg, #172128 1px, transparent 1px);
+        background-size: 48px 48px;
+        opacity: 0.35;
+        content: "";
+      }
+      .lv-power-line {
+        position: absolute;
+        z-index: 1;
+        top: 194px;
+        left: 11%;
+        right: 11%;
+        height: 4px;
+        background: var(--yellow);
+      }
+      .lv-ground-line {
+        position: absolute;
+        z-index: 1;
+        top: 354px;
+        left: 11%;
+        right: 11%;
+        border-top: 3px solid #64727a;
+      }
+      .lv-power-line.open { background: linear-gradient(90deg, var(--yellow) 0 38%, transparent 38% 45%, #4a4140 45%); }
+      .lv-circuit-nodes {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 28px;
+        align-items: center;
+        min-height: 330px;
+      }
+      .lv-node {
+        display: grid;
+        place-items: center;
+        min-height: 92px;
+        padding: 12px;
+        border: 1px solid #3a4850;
+        background: #10171d;
+        text-align: center;
+      }
+      .lv-node strong { font-size: 14px; }
+      .lv-node span { margin-top: 6px; color: var(--muted); font: 500 11px "DM Mono"; }
+      .lv-node.fault { border-color: var(--red); background: #261719; }
+      .measure-point {
+        position: absolute;
+        z-index: 4;
+        width: 34px;
+        height: 34px;
+        border: 2px solid var(--cyan);
+        border-radius: 50%;
+        background: #0b151a;
+        color: var(--cyan);
+        cursor: pointer;
+        font: 500 11px "DM Mono";
+      }
+      .measure-point.active { background: var(--cyan); color: #071013; }
+      .measure-point[data-point="battery"] { left: 10%; top: 154px; }
+      .measure-point[data-point="fuseIn"] { left: 30%; top: 154px; }
+      .measure-point[data-point="fuseOut"] { left: 45%; top: 154px; }
+      .measure-point[data-point="ecuPower"] { left: 68%; top: 154px; }
+      .measure-point[data-point="ecuGround"] { left: 74%; top: 330px; }
+      .lv-meter {
+        padding: 22px;
+        background: #0d1318;
+      }
+      .meter-display {
+        padding: 18px;
+        border: 1px solid #3d5550;
+        background: #09100e;
+      }
+      .meter-display span { display: block; color: #7e928b; font: 500 11px "DM Mono"; }
+      .meter-display strong { display: block; margin: 8px 0; color: var(--green); font: 500 40px "DM Mono"; }
+      .meter-display small { color: var(--muted); font-size: 12px; }
+      .lv-diagnosis {
+        margin-top: 20px;
+      }
+      .lv-diagnosis h3 { margin: 0 0 8px; font-size: 17px; }
+      .lv-diagnosis p { margin: 0; color: var(--muted); font-size: 14px; }
+      .lv-diagnosis ol { margin: 18px 0 0; padding-left: 20px; color: #b9c2c7; font-size: 13px; }
+      .lv-diagnosis li { margin: 8px 0; }
+      .lv-source-note {
+        padding: 14px 20px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
       .system-directory .nav-icon {
         width: 30px;
         height: 30px;
       }
       @media (max-width: 1050px) {
+        .lv-lab-body { grid-template-columns: 1fr; }
+        .lv-measure-stage { border-right: 0; border-bottom: 1px solid var(--line); }
         .global-nav span {
           display: none;
         }
@@ -1280,6 +1421,16 @@
         }
       }
       @media (max-width: 700px) {
+        .lv-lab-toolbar { align-items: stretch; flex-direction: column; }
+        .lv-circuit-nodes { grid-template-columns: repeat(2, 1fr); gap: 72px 22px; }
+        .lv-measure-stage { min-height: 620px; padding: 44px 20px; }
+        .lv-power-line { top: 189px; }
+        .lv-ground-line { top: 531px; }
+        .measure-point[data-point="battery"] { left: 8%; top: 151px; }
+        .measure-point[data-point="fuseIn"] { left: 43%; top: 151px; }
+        .measure-point[data-point="fuseOut"] { left: 53%; top: 151px; }
+        .measure-point[data-point="ecuPower"] { left: 57%; top: 319px; }
+        .measure-point[data-point="ecuGround"] { left: 70%; top: 507px; }
         .global-nav {
           display: flex;
         }
@@ -1449,6 +1600,60 @@
             </div>
           </section>
         </div>
+        <section class="panel lv-lab" aria-labelledby="lvLabTitle">
+          <div class="panel-head">
+            <h2 id="lvLabTitle">低压供电测量与故障注入实验</h2>
+            <small>1701 电池与保险丝 · 1710 线束 · 1715 控制模块</small>
+          </div>
+          <div class="lv-lab-toolbar">
+            <div class="lv-architecture" aria-label="低压架构">
+              <button class="active" data-lv-architecture="lead">传统 12V 架构</button>
+              <button data-lv-architecture="lithium">新型低压锂电架构</button>
+            </div>
+            <div class="lv-faults" aria-label="故障注入">
+              <button class="active" data-lv-fault="healthy">正常</button>
+              <button data-lv-fault="weak">电池电压低</button>
+              <button data-lv-fault="fuse">保险丝开路</button>
+              <button data-lv-fault="ground">搭铁压降</button>
+              <button data-lv-fault="wake">唤醒丢失</button>
+            </div>
+          </div>
+          <div class="lv-lab-body">
+            <div class="lv-measure-stage">
+              <div class="lv-power-line" id="lvPowerLine"></div>
+              <div class="lv-ground-line"></div>
+              <div class="lv-circuit-nodes">
+                <div class="lv-node" id="lvBatteryNode"><strong>低压电池</strong><span id="lvBatteryLabel">12.6 V</span></div>
+                <div class="lv-node" id="lvFuseNode"><strong>主保险丝</strong><span>F12 · 10 A</span></div>
+                <div class="lv-node" id="lvWakeNode"><strong>唤醒 / 继电器</strong><span>KL15</span></div>
+                <div class="lv-node" id="lvEcuNode"><strong>车身控制器</strong><span>POWER · GND · CAN</span></div>
+              </div>
+              <button class="measure-point active" data-point="battery" aria-label="测量电池正极">P1</button>
+              <button class="measure-point" data-point="fuseIn" aria-label="测量保险丝输入">P2</button>
+              <button class="measure-point" data-point="fuseOut" aria-label="测量保险丝输出">P3</button>
+              <button class="measure-point" data-point="ecuPower" aria-label="测量 ECU 电源脚">P4</button>
+              <button class="measure-point" data-point="ecuGround" aria-label="测量 ECU 搭铁压降">P5</button>
+            </div>
+            <aside class="lv-meter" aria-live="polite">
+              <div class="meter-display">
+                <span id="lvMeterPoint">P1 · 电池正极对电池负极</span>
+                <strong id="lvMeterValue">12.60 V</strong>
+                <small id="lvMeterState">低压源正常</small>
+              </div>
+              <div class="lv-diagnosis">
+                <h3 id="lvDiagnosisTitle">基础条件正常</h3>
+                <p id="lvDiagnosisText">供电、保险丝输出和搭铁压降均在教学模型的正常范围内。</p>
+                <ol>
+                  <li>先测电池端，确认共同供电源。</li>
+                  <li>比较保险丝输入和输出，定位开路位置。</li>
+                  <li>负载工作时测 ECU 地到电池负极的压降。</li>
+                  <li>基础电气正常后，再检查唤醒、CAN 和模块本体。</li>
+                </ol>
+              </div>
+            </aside>
+          </div>
+          <div class="lv-source-note">不同 Model Y 年份的低压电池类型和标称电压可能不同。本实验展示诊断方法，具体参数以车型年份和官方维修资料为准。</div>
+        </section>
         <section class="panel hv-topology" id="hvTopology">
           <div class="panel-head">
             <h2>纯电动汽车高压系统拓扑</h2>
@@ -2005,6 +2210,57 @@
       let ignition = false,
         fuseFault = false,
         selectedPart = "battery";
+      let lvArchitecture = "lead",
+        lvFault = "healthy",
+        lvPoint = "battery";
+      const lvArchitectures = {
+        lead: { nominal: 12.6, weak: 9.4, label: "传统 12V" },
+        lithium: { nominal: 15.5, weak: 11.8, label: "低压锂电" },
+      };
+      const lvPointLabels = {
+        battery: "P1 · 电池正极对电池负极",
+        fuseIn: "P2 · 保险丝输入对电池负极",
+        fuseOut: "P3 · 保险丝输出对电池负极",
+        ecuPower: "P4 · ECU 电源脚对电池负极",
+        ecuGround: "P5 · ECU 地到电池负极 · 带载压降",
+      };
+      function lvValue(point) {
+        const source = lvFault === "weak" ? lvArchitectures[lvArchitecture].weak : lvArchitectures[lvArchitecture].nominal;
+        if (point === "ecuGround") return lvFault === "ground" ? 1.72 : 0.04;
+        if (lvFault === "fuse" && ["fuseOut", "ecuPower"].includes(point)) return 0;
+        if (lvFault === "ground" && point === "ecuPower") return source - 1.72;
+        return source;
+      }
+      function updateLvLab() {
+        const architecture = lvArchitectures[lvArchitecture];
+        const value = lvValue(lvPoint);
+        document.querySelectorAll("[data-lv-architecture]").forEach((button) => button.classList.toggle("active", button.dataset.lvArchitecture === lvArchitecture));
+        document.querySelectorAll("[data-lv-fault]").forEach((button) => button.classList.toggle("active", button.dataset.lvFault === lvFault));
+        document.querySelectorAll(".measure-point").forEach((button) => button.classList.toggle("active", button.dataset.point === lvPoint));
+        $("#lvBatteryLabel").textContent = `${architecture.nominal.toFixed(1)} V · ${architecture.label}`;
+        $("#lvMeterPoint").textContent = lvPointLabels[lvPoint];
+        $("#lvMeterValue").textContent = `${value.toFixed(2)} V`;
+        $("#lvPowerLine").classList.toggle("open", lvFault === "fuse");
+        ["lvBatteryNode", "lvFuseNode", "lvWakeNode", "lvEcuNode"].forEach((id) => $("#" + id).classList.remove("fault"));
+        const diagnoses = {
+          healthy: ["基础条件正常", "供电、保险丝输出和搭铁压降均在教学模型的正常范围内。", "低压源正常"],
+          weak: ["低压源不足", "多个 ECU 可能同时复位并产生通信 DTC。先恢复低压供电，再判断网络和模块。", "源电压低于工作范围"],
+          fuse: ["保险丝后端失电", "P2 有电而 P3/P4 为 0 V，开路位于保险丝或其连接位置。", "比较输入与输出定位开路"],
+          ground: ["搭铁回路压降过大", "空载供电可能正常，但负载工作时 ECU 地电位被抬高，导致复位或异常数据。", "带载地线压降异常"],
+          wake: ["供电存在但模块未唤醒", "KL30 常电正常，下一步应检查 KL15/唤醒信号、网关命令和模块状态。", "静态供电正常，唤醒缺失"],
+        };
+        const diagnosis = diagnoses[lvFault];
+        $("#lvDiagnosisTitle").textContent = diagnosis[0];
+        $("#lvDiagnosisText").textContent = diagnosis[1];
+        $("#lvMeterState").textContent = diagnosis[2];
+        if (lvFault === "weak") $("#lvBatteryNode").classList.add("fault");
+        if (lvFault === "fuse") $("#lvFuseNode").classList.add("fault");
+        if (lvFault === "ground") $("#lvEcuNode").classList.add("fault");
+        if (lvFault === "wake") $("#lvWakeNode").classList.add("fault");
+      }
+      document.querySelectorAll("[data-lv-architecture]").forEach((button) => button.onclick = () => { lvArchitecture = button.dataset.lvArchitecture; updateLvLab(); });
+      document.querySelectorAll("[data-lv-fault]").forEach((button) => button.onclick = () => { lvFault = button.dataset.lvFault; updateLvLab(); });
+      document.querySelectorAll(".measure-point").forEach((button) => button.onclick = () => { lvPoint = button.dataset.point; updateLvLab(); });
       function icon(name) {
         return `<i data-lucide="${name}" style="width:13px"></i>`;
       }
@@ -2152,6 +2408,7 @@
         updateCircuit();
       };
       initPartNav();
+      updateLvLab();
       showDetail("battery");
       setHvMode("drive");
       if (window.lucide) lucide.createIcons();

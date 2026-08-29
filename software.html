@@ -122,6 +122,123 @@
       .dependency {
         margin-top: 12px;
       }
+      .service-console {
+        margin-bottom: 16px;
+      }
+      .service-layout {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        min-height: 470px;
+      }
+      .service-scenarios {
+        padding: 22px;
+        border-right: 1px solid var(--line);
+        background: #0d1318;
+      }
+      .service-scenarios > p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .service-scenario-list {
+        display: grid;
+        gap: 8px;
+      }
+      .service-scenario {
+        min-height: 64px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        background: #111820;
+        color: var(--text);
+        text-align: left;
+        cursor: pointer;
+      }
+      .service-scenario strong,
+      .service-scenario span { display: block; }
+      .service-scenario strong { font-size: 14px; }
+      .service-scenario span { margin-top: 4px; color: var(--muted); font-size: 12px; }
+      .service-scenario.active {
+        border-color: var(--cyan);
+        background: #173034;
+      }
+      .service-workflow {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        padding: 22px;
+      }
+      .service-flow {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(72px, 1fr));
+        align-items: start;
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+      .service-step {
+        position: relative;
+        min-height: 92px;
+        padding: 12px 9px;
+        border: 1px solid #2c3841;
+        background: #0d1318;
+        color: var(--muted);
+        text-align: left;
+        cursor: pointer;
+      }
+      .service-step::after {
+        position: absolute;
+        top: 45px;
+        right: -9px;
+        width: 8px;
+        border-top: 1px solid #49616a;
+        content: "";
+      }
+      .service-step:last-child::after { display: none; }
+      .service-step b { display: block; color: #697781; font: 500 11px "DM Mono"; }
+      .service-step span { display: block; margin-top: 9px; font-size: 12px; }
+      .service-step.done { border-color: #35605a; color: #b8d9cf; }
+      .service-step.active { border-color: var(--cyan); background: #173034; color: var(--text); }
+      .service-step.active b { color: var(--cyan); }
+      .service-current {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 230px;
+        gap: 20px;
+        align-items: start;
+      }
+      .service-current h2 { margin: 7px 0 8px; font-size: 24px; }
+      .service-current p { margin: 0; color: var(--muted); font-size: 14px; }
+      .service-evidence {
+        display: grid;
+        gap: 8px;
+      }
+      .service-evidence div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 12px;
+      }
+      .service-evidence span { color: var(--muted); }
+      .service-evidence b { color: var(--green); font: 500 12px "DM Mono"; }
+      .service-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 22px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+      .service-controls p { margin: 0; color: var(--muted); font-size: 12px; }
+      .service-controls div { display: flex; gap: 8px; }
+      .service-controls button {
+        min-height: 42px;
+        padding: 9px 13px;
+        border: 1px solid var(--line);
+        background: #0d1318;
+        color: var(--text);
+        cursor: pointer;
+      }
+      .service-controls button:last-child { border-color: #3f6f72; background: #173034; }
       .dependency-body {
         padding: 17px;
       }
@@ -154,6 +271,11 @@
         color: #58656e;
       }
       @media (max-width: 900px) {
+        .service-layout { grid-template-columns: 1fr; }
+        .service-scenarios { border-right: 0; border-bottom: 1px solid var(--line); }
+        .service-scenario-list { grid-template-columns: repeat(2, 1fr); }
+        .service-flow { grid-template-columns: repeat(4, 1fr); }
+        .service-step::after { display: none; }
         .deploy {
           grid-template-columns: 1fr;
         }
@@ -166,6 +288,12 @@
         }
       }
       @media (max-width: 620px) {
+        .service-scenario-list,
+        .service-flow,
+        .service-current { grid-template-columns: 1fr; }
+        .service-step { min-height: 58px; }
+        .service-controls { align-items: stretch; flex-direction: column; }
+        .service-controls div { display: grid; grid-template-columns: repeat(2, 1fr); }
         .deploy-stage {
           height: 480px;
         }
@@ -203,6 +331,43 @@
           </div>
           <a class="back" href="index.html">← 返回总览</a>
         </header>
+        <section class="panel service-console" aria-labelledby="serviceWorkflowTitle">
+          <div class="panel-head">
+            <h2 id="serviceWorkflowTitle">Tesla 维护模式与 Toolbox 诊断工作流</h2>
+            <small>MODEL Y SERVICE LOGIC · 教学抽象</small>
+          </div>
+          <div class="service-layout">
+            <aside class="service-scenarios">
+              <p>先选择客户现象，再沿证据链决定服务动作。</p>
+              <div class="service-scenario-list">
+                <button class="service-scenario active" data-service-scene="communication"><strong>多个 ECU 同时离线</strong><span>先查低压和网关，不直接刷写</span></button>
+                <button class="service-scenario" data-service-scene="touchscreen"><strong>触摸屏功能异常</strong><span>其他控制器在线</span></button>
+                <button class="service-scenario" data-service-scene="update"><strong>整车软件版本落后</strong><span>车辆基础条件正常</span></button>
+                <button class="service-scenario" data-service-scene="userdata"><strong>用户配置持续异常</strong><span>软件重装后仍可复现</span></button>
+              </div>
+            </aside>
+            <div class="service-workflow">
+              <div class="service-flow" id="serviceFlow"></div>
+              <div class="service-current" aria-live="polite">
+                <div>
+                  <span class="tag" id="serviceCode">PRECHECK</span>
+                  <h2 id="serviceName">确认车辆基础条件</h2>
+                  <p id="serviceDesc">确认低压供电、车辆在线状态和客户现象，避免把公共供电故障误判为多个 ECU 同时损坏。</p>
+                </div>
+                <div class="service-evidence">
+                  <div><span>低压供电</span><b id="serviceLv">PASS</b></div>
+                  <div><span>网关状态</span><b id="serviceGateway">PENDING</b></div>
+                  <div><span>DTC / 数据</span><b id="serviceDtc">PENDING</b></div>
+                  <div><span>建议动作</span><b id="serviceAction">检查供电</b></div>
+                </div>
+              </div>
+              <div class="service-controls">
+                <p>依据 Tesla Model Y 手册 0002 固件服务、0005 维护模式整理。</p>
+                <div><button id="serviceReset">重置</button><button id="serviceNext">下一步</button></div>
+              </div>
+            </div>
+          </div>
+        </section>
         <section class="panel">
           <div class="panel-head">
             <h2>端到端 OTA / ECU 刷写动画</h2>
@@ -494,6 +659,47 @@
                   : "UNKNOWN";
           }),
       );
+      const serviceSteps = [
+        { code: "PRECHECK", name: "确认车辆基础条件", desc: "确认低压供电、车辆在线状态和客户现象，避免把公共供电故障误判为多个 ECU 同时损坏。" },
+        { code: "SERVICE MODE", name: "进入维护模式", desc: "在车端打开维护模式，读取车辆健康状态并确认诊断入口可用。" },
+        { code: "GATEWAY", name: "检查网关与配置", desc: "确认网关在线、网络分区状态和车辆配置；需要受保护操作时再执行授权解锁。" },
+        { code: "DTC / DATA", name: "读取 DTC 与实时数据", desc: "把当前、历史和偶发故障与实时数据、模块在线状态放到同一时间线上分析。" },
+        { code: "TOOLBOX", name: "执行定向测试", desc: "使用 Toolbox 运行目标测试或软件动作，不用整车刷写代替故障定位。" },
+        { code: "ACTION", name: "实施最小必要动作", desc: "根据证据选择修复供电、重新安装目标软件、整车更新或恢复用户数据。" },
+        { code: "VERIFY", name: "清码、复测与交付", desc: "重新读取 DTC 和数据流，复现原始工况，确认故障未再次出现。" },
+      ];
+      const serviceScenes = {
+        communication: { lv: "CHECK FIRST", gateway: "多节点离线", dtc: "U 类通信码", action: "修复供电/网络", final: "多个 ECU 同时掉线优先寻找公共原因：低压、搭铁、唤醒或网关。" },
+        touchscreen: { lv: "PASS", gateway: "ONLINE", dtc: "目标模块异常", action: "重装触摸屏软件", final: "其他 ECU 在线且硬件基础条件正常时，选择目标模块软件重新安装，而不是整车恢复出厂。" },
+        update: { lv: "PASS", gateway: "ONLINE", dtc: "无阻断故障", action: "整车软件更新", final: "先验证版本依赖和供电条件，再执行整车软件更新并做部署后检查。" },
+        userdata: { lv: "PASS", gateway: "ONLINE", dtc: "软件正常", action: "恢复用户数据", final: "恢复出厂设置影响用户数据，只在软件和硬件证据均不支持其他根因时使用。" },
+      };
+      let serviceScene = "communication", serviceStep = 0;
+      function renderService() {
+        const scene = serviceScenes[serviceScene];
+        $("#serviceFlow").innerHTML = serviceSteps.map((item, index) => `<button class="service-step ${index < serviceStep ? "done" : ""} ${index === serviceStep ? "active" : ""}" data-service-step="${index}"><b>0${index + 1}</b><span>${item.name}</span></button>`).join("");
+        const current = serviceSteps[serviceStep];
+        $("#serviceCode").textContent = current.code;
+        $("#serviceName").textContent = current.name;
+        $("#serviceDesc").textContent = serviceStep === 5 ? scene.final : current.desc;
+        $("#serviceLv").textContent = serviceStep === 0 ? scene.lv : (serviceScene === "communication" && serviceStep < 2 ? "VERIFY" : "PASS");
+        $("#serviceGateway").textContent = serviceStep < 2 ? "PENDING" : scene.gateway;
+        $("#serviceDtc").textContent = serviceStep < 3 ? "PENDING" : scene.dtc;
+        $("#serviceAction").textContent = serviceStep < 4 ? "继续取证" : scene.action;
+        document.querySelectorAll("[data-service-step]").forEach((button) => button.onclick = () => { serviceStep = Number(button.dataset.serviceStep); renderService(); });
+      }
+      document.querySelectorAll("[data-service-scene]").forEach((button) => {
+        button.onclick = () => {
+          document.querySelectorAll("[data-service-scene]").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          serviceScene = button.dataset.serviceScene;
+          serviceStep = 0;
+          renderService();
+        };
+      });
+      $("#serviceReset").onclick = () => { serviceStep = 0; renderService(); };
+      $("#serviceNext").onclick = () => { serviceStep = (serviceStep + 1) % serviceSteps.length; renderService(); };
+      renderService();
       show(0);
       draw();
     </script>

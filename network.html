@@ -146,6 +146,42 @@
         font-size: 13px;
         line-height: 1.6;
       }
+      .tesla-ecu { margin-bottom: 14px; }
+      .tesla-ecu-intro { padding: 18px 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; }
+      .tesla-ecu-intro h2 { margin: 5px 0 7px; font-size: 20px; }
+      .tesla-ecu-intro p { margin: 0; max-width: 760px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+      .tesla-ecu-badge { flex: none; border: 1px solid #3c6d70; padding: 8px 10px; color: var(--cyan); font: 9px "DM Mono"; }
+      .tesla-ecu-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+      .tesla-ecu-toggle { border: 1px solid #3b6265; background: #183033; color: #d6ffff; padding: 8px 11px; font-size: 10px; cursor: pointer; }
+      .tesla-ecu-toggle:hover { border-color: var(--cyan); }
+      .tesla-ecu .ecu-map, .tesla-ecu .ecu-diagnostics, .tesla-ecu .ecu-generation { display: none; }
+      .tesla-ecu.expanded .ecu-map { display: block; }
+      .tesla-ecu.expanded .ecu-diagnostics { display: grid; }
+      .tesla-ecu.expanded .ecu-generation { display: block; }
+      .ecu-map { padding: 20px; background: #090e12; }
+      .ecu-tier { display: grid; gap: 8px; }
+      .ecu-tier.central { grid-template-columns: 1fr 1fr; max-width: 760px; margin: 0 auto; padding: 12px; border: 1px solid #3d6b6e; background: #102326; position: relative; }
+      .ecu-tier.central::before { content: "中央计算 / 网关层"; position: absolute; top: -9px; left: 12px; padding: 0 6px; background: #090e12; color: var(--cyan); font: 8px "DM Mono"; }
+      .ecu-node { min-width: 0; padding: 12px; border: 1px solid #2d3c44; background: #10171c; }
+      .ecu-node strong { display: block; font-size: 12px; margin-bottom: 5px; }
+      .ecu-node small { display: block; color: var(--cyan); font: 8px "DM Mono"; margin-bottom: 7px; }
+      .ecu-node p { margin: 0; color: #99a6ad; font-size: 9px; line-height: 1.55; }
+      .ecu-node.gateway { border-color: #b47b48; }
+      .ecu-node.gateway small { color: var(--orange); }
+      .ecu-bus { display: flex; align-items: center; justify-content: center; min-height: 46px; color: #71818a; font: 8px "DM Mono"; }
+      .ecu-bus::before, .ecu-bus::after { content: ""; height: 1px; background: #36565d; flex: 1; max-width: 170px; margin: 0 12px; }
+      .ecu-tier.zones { grid-template-columns: repeat(3, 1fr); }
+      .ecu-tier.zones .ecu-node { border-top-color: var(--cyan); }
+      .ecu-leaves { margin-top: 7px; color: #718089; font-size: 8px; line-height: 1.5; }
+      .ecu-tier.branches { margin-top: 14px; grid-template-columns: 1.15fr .85fr .85fr; }
+      .ecu-tier.branches .ecu-node { border-top-color: var(--orange); }
+      .ecu-diagnostics { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); }
+      .ecu-diagnostics div { padding: 14px 16px; border-right: 1px solid var(--line); }
+      .ecu-diagnostics div:last-child { border-right: 0; }
+      .ecu-diagnostics b { display: block; margin-bottom: 5px; color: #d8e0e3; font-size: 10px; }
+      .ecu-diagnostics span { color: var(--muted); font-size: 9px; line-height: 1.5; }
+      .ecu-generation { padding: 12px 16px; border-top: 1px solid var(--line); background: #10161b; color: #8f9ba2; font-size: 9px; line-height: 1.55; }
+      .ecu-generation strong { color: var(--orange); }
       .grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -297,6 +333,15 @@
           grid-template-columns: 1fr;
           gap: 5px;
         }
+        .tesla-ecu-intro { display: block; padding: 15px; }
+        .tesla-ecu-badge { display: inline-block; margin-top: 12px; }
+        .tesla-ecu-actions { margin-top: 12px; justify-content: space-between; }
+        .ecu-map { padding: 16px 12px; }
+        .ecu-tier.central, .ecu-tier.zones, .ecu-tier.branches { grid-template-columns: 1fr; }
+        .ecu-bus { min-height: 36px; }
+        .ecu-diagnostics { grid-template-columns: 1fr 1fr; }
+        .ecu-diagnostics div:nth-child(2) { border-right: 0; }
+        .ecu-diagnostics div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
         .lin-stage {
           height: 330px;
         }
@@ -364,10 +409,70 @@
             ><small>多个节点并联，共享同一差分总线</small>
           </div>
         </section>
+        <section class="panel tesla-ecu" aria-labelledby="teslaEcuTitle">
+          <div class="tesla-ecu-intro">
+            <div>
+              <div class="eyebrow">MODEL 3 / MODEL Y · ECU ARCHITECTURE</div>
+              <h2 id="teslaEcuTitle">中央计算 + 三区域控制器</h2>
+              <p>与按动力、底盘、车身划分功能域的传统示意不同，Model 3/Y 将大量车身 I/O 就近汇入前、左、右区域控制器；中央计算承担高层功能与网关协同，高压动力和安全控制器保留独立职责。</p>
+            </div>
+            <div class="tesla-ecu-actions"><span class="tesla-ecu-badge">SYSTEM VIEW · 教学抽象</span><button class="tesla-ecu-toggle" id="teslaEcuToggle" type="button" aria-expanded="false" aria-controls="teslaEcuContent">展开架构 ↓</button></div>
+          </div>
+          <div class="ecu-map" id="teslaEcuContent">
+            <div class="ecu-tier central">
+              <article class="ecu-node">
+                <small>AP / AICM · HW3 / HW4</small>
+                <strong>自动驾驶计算平台</strong>
+                <p>处理摄像头感知与辅助驾驶决策，向转向、驱动和制动系统输出请求；通过车载网络交换状态与控制信息。</p>
+              </article>
+              <article class="ecu-node gateway">
+                <small>MCU · INFOTAINMENT / GATEWAY</small>
+                <strong>座舱计算与网络网关</strong>
+                <p>承载中控、连接、音频和车辆设置，并负责不同网络之间的路由与协议衔接。跨网段超时时应检查网关路径。</p>
+              </article>
+            </div>
+            <div class="ecu-bus"><span>以太网骨干 / 网关转发 / 多路 CAN</span></div>
+            <div class="ecu-tier zones">
+              <article class="ecu-node">
+                <small>VCFRONT / FBCM</small><strong>前区域控制器</strong>
+                <p>就近采集输入并驱动车头周边负载。</p><div class="ecu-leaves">前灯 · 热管理执行器 · 风扇 · 前舱部件<br />下挂 CAN / LIN 外设</div>
+              </article>
+              <article class="ecu-node">
+                <small>VCLEFT / LBCM</small><strong>左区域控制器</strong>
+                <p>汇聚车辆左侧车身 I/O 与局部负载。</p><div class="ecu-leaves">左门窗 · 门锁 · 座椅 · 左侧灯光<br />智能高边驱动 / 状态反馈</div>
+              </article>
+              <article class="ecu-node">
+                <small>VCRIGHT / RBCM</small><strong>右区域控制器</strong>
+                <p>汇聚右侧及部分车尾、座舱外围设备。</p><div class="ecu-leaves">右门窗 · HVAC · 尾灯 · 后备箱<br />驻车与后部外围设备</div>
+              </article>
+            </div>
+            <div class="ecu-tier branches">
+              <article class="ecu-node">
+                <small>POWERTRAIN CAN · 高压动力支路</small><strong>BMS / PCS / 前后驱动单元</strong>
+                <p>BMS 管理电池与高压安全；OBC、DC/DC 等承担充电和能量转换；前后 Drive Unit 内的电机控制器与逆变器执行扭矩和能量回收。</p>
+              </article>
+              <article class="ecu-node">
+                <small>CHASSIS CAN</small><strong>ESP / ABS 制动控制</strong>
+                <p>采集轮速并执行防抱死、稳定控制和制动协同，属于关键安全控制链路。</p>
+              </article>
+              <article class="ecu-node">
+                <small>SAFETY ECU</small><strong>RCM 约束控制模块</strong>
+                <p>监测碰撞并管理约束系统触发；碰撞事件可能联动高压隔离安全动作。</p>
+              </article>
+            </div>
+          </div>
+          <div class="ecu-diagnostics">
+            <div><b>跨网段 CAN 超时</b><span>先确认网关在线、路由路径与公共低压供电，再判断多个 ECU 同时损坏。</span></div>
+            <div><b>局部负载失效</b><span>检查对应区域控制器的供电、HSD 输出、下挂 LIN/CAN 和负载反馈。</span></div>
+            <div><b>动力受限</b><span>联合查看 BMS 功率限制、驱动单元温度、逆变器 DTC 与扭矩请求链路。</span></div>
+            <div><b>软件安全部署</b><span>确认目标控制器、车辆状态、低压稳定、版本兼容、完整性校验和失败恢复。</span></div>
+          </div>
+          <div class="ecu-generation"><strong>架构边界：</strong>本图用于理解系统关系，不是维修接线图。不同生产年份、市场、硬件版本和车型配置可能改变控制器命名、位置、集成方式及网络连接；“无独立 VCU”应理解为整车控制功能由多控制器软件协同承担，而不是不存在整车控制逻辑。Cybertruck 采用 48V 低压、更多区域控制和新一代高速通信架构，应单独讨论。</div>
+        </section>
         <section class="panel domain-topology">
           <div class="panel-head">
-            <h2>整车域 CAN 网络拓扑动画</h2>
-            <small>四条独立总线 · 中央网关 · 选择性转发</small>
+            <h2>通用功能域 CAN 网络对照</h2>
+            <small>传统功能域示意 · 中央网关 · 选择性转发</small>
           </div>
           <div class="domain-toolbar">
             <div class="scenario-switch" aria-label="拓扑动画场景">
@@ -411,7 +516,7 @@
             </div>
           </div>
           <div class="domain-architecture">
-            <h3>域控制器架构</h3>
+            <h3>通用功能域架构</h3>
             <div class="architecture-flow">
               <div class="architecture-node">
                 <strong>底盘域控制器</strong>
@@ -575,6 +680,13 @@
     </div>
     <script>
       const $ = (s) => document.querySelector(s);
+      const teslaEcuPanel = document.querySelector(".tesla-ecu");
+      const teslaEcuToggle = document.querySelector("#teslaEcuToggle");
+      teslaEcuToggle.addEventListener("click", () => {
+        const expanded = teslaEcuPanel.classList.toggle("expanded");
+        teslaEcuToggle.setAttribute("aria-expanded", String(expanded));
+        teslaEcuToggle.textContent = expanded ? "收起架构 ↑" : "展开架构 ↓";
+      });
       function setup(c) {
         const d = devicePixelRatio || 1,
           w = c.clientWidth,
